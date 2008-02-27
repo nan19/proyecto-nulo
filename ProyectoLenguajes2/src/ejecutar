@@ -1,0 +1,5 @@
+#! /bin/bash
+
+jlex *.lex
+cup *.cup
+#javac *.java

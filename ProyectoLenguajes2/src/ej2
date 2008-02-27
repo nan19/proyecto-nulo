@@ -1,0 +1,17 @@
+comienzo
+entero a := 3;			
+booleano y := cierto;		
+
+si ( a > 0 )			
+	a := a+1;	
+	si ( a > 3 )
+		a:=0;
+	fins;
+sino
+	b := 10;		
+fins;
+
+hacer ( (a<b)&cierto )			
+	b := b - 2;		
+finh;			
+fin
