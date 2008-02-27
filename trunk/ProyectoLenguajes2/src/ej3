@@ -1,0 +1,18 @@
+comienzo
+entero a;
+entero b;
+entero c := 5;
+real c;
+
+//booleano x,y,z;
+a:= a < b <= c;
+a:= -3+4*5/2-1+3 mod 5&cierto;
+si (a>2) 
+a:=3;
+entero z := 0;
+sino
+a:=7;
+fins;
+hacer (a<10) a:=a+1; finh;
+b:=(a<3)&(a!=0)|cierto;
+fin
