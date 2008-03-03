@@ -76,130 +76,159 @@ non terminal Expresion expr, expr2, term, fact, fact2, fact3;
  * Gramatica del lenguaje.
  */
 
-s		::= COMIENZO lInst:c FIN
-		{: c.imprimir(); RESULT = c; :}
-		;
+s	::= COMIENZO lInst:c FIN
+            {: c.imprimir(); RESULT = c; :}
+	;
 
-lInst	::= lInst:c inst:i PYCOMA
-		{: c.agregar(i); RESULT = c; :}
-		|	inst:i PYCOMA
+lInst	::= lInst:c inst:i PYCOMA:p
+		{:  if(!c.agregar(i)){
+                        System.out.println("Error en la linea "+p.lineBegin);
+                    }
+                    RESULT = c; 
+                :}
+        |   inst:i PYCOMA
 		{: RESULT = i; :}
-		;
+        ;
 		
 inst	::= iDecl:i
 		{: RESULT = i; :}
-		|	iDeclA:i
+        |   iDeclA:i
 		{: RESULT = i; :}
-		|	iAsig:i
+        |   iAsig:i
 		{:RESULT = i; :}
-		|	iSi:i
+        |   iSi:i
 		{: RESULT = i; :}
-		|	iSino:i
+        |   iSino:i
 		{: RESULT = i; :}
-		|	iHacer:i
+        |   iHacer:i
 		{: RESULT = i; :}
-		;
+        ;
 
 iDecl	::= DECLENTERO:t ID:i
-		{: RESULT = new Control(new InstDecl(t.text, i),i,t.text); :}
-		|	DECLREAL:t ID:i
-		{: RESULT = new Control(new InstDecl(t.text, i),i,t.text); :}
-		|	DECLBOOL:t ID:i
-		{: RESULT = new Control(new InstDecl(t.text, i),i,t.text); :}
-		;
+		{:  Informacion info = new Informacion(i,t.text,null);
+                    RESULT = new Control(new InstDecl(t.text, i),i,info); 
+                :}
+        |   DECLREAL:t ID:i
+		{:  Informacion info = new Informacion(i,t.text,null);
+                    RESULT = new Control(new InstDecl(t.text, i),i,info); 
+                :}
+        |   DECLBOOL:t ID:i
+		{:  Informacion info = new Informacion(i,t.text,null);
+                    RESULT = new Control(new InstDecl(t.text, i),i,info); 
+                :}
+        ;
 		
-iDeclA	::= DECLENTERO:t ID:d ASIGNACION expr:e
-		{: RESULT = new Control(new InstDeclAsig(t.text, new InstAsig(d,e) ),d, t.text); :}
-		|	DECLREAL:t ID:d ASIGNACION expr:e
-		{: RESULT = new Control(new InstDeclAsig(t.text, new InstAsig(d,e) ),d, t.text); :}
-		|	DECLBOOL:t ID:d ASIGNACION expr:e
-		{: RESULT = new Control(new InstDeclAsig(t.text, new InstAsig(d,e) ),d, t.text); :}
-		;
+iDeclA	::= DECLENTERO:t ID:i ASIGNACION expr:e
+		{:  Informacion info = new Informacion(i,t.text,null); //null hay q reemplazarlo
+                    RESULT = new Control(new InstDeclAsig(t.text, i,e ),i, info); 
+                :}
+        |   DECLREAL:t ID:i ASIGNACION expr:e
+		{:  Informacion info = new Informacion(i,t.text,null); //null hay q reemplazarlo
+                    RESULT = new Control(new InstDeclAsig(t.text,i,e ),i, info); 
+                :}
+        |   DECLBOOL:t ID:i ASIGNACION expr:e
+		{:  Informacion info = new Informacion(i,t.text,null); //null hay q reemplazarlo
+                    RESULT = new Control(new InstDeclAsig(t.text, i,e ),i, info); 
+                :}
+        ;
 	
 iAsig	::= ID:d ASIGNACION expr:e
-		{: RESULT = new Control(new InstAsig(d, e)); :}
-		;
+                {:  
+                    RESULT = new Control(new InstAsig(d, e)); 
+                :}
+        ;
 
-iSi		::= SI APARENT expr:e CPARENT lInst:l FINSI
-		{: RESULT = new Control(new InstIf(e, l )); :}
-		;
+iSi	::= SI APARENT expr:e CPARENT lInst:l FINSI
+		{:  Control c = new Control(new InstIf(e, l ));
+                    l.setBloqueExterno(c);
+                    RESULT =  c;
+                :}
+        ;
 		
 iSino 	::= SI APARENT expr:e CPARENT lInst:l1 SINO lInst:l2 FINSI
-		{: RESULT = new Control(new InstIfElse(e, l1,l2)); :}
-		;
+		{:  Control c = new Control(new InstIfElse(e, l1,l2)); 
+                    l1.setBloqueExterno(c);
+                    l2.setBloqueExterno(c);
+                    RESULT =  c;
+                :}
+        ;
 		
 iHacer	::= HACER APARENT expr:e CPARENT lInst:l FINHACER
-		{: RESULT = new Control(new InstDo(e, l)); :}
-		;
+		{:  Control c = new Control(new InstDo(e, l)); 
+                    l.setBloqueExterno(c);
+                    RESULT = c;
+                :}
+        ;
 
 expr	::= expr:e1 IGUAL:o expr2:e2
-		{: RESULT = new ExprBin(e1, OperadorB.IGUAL, e2); :}
-		|	expr:e1 DIF:o expr2:e2
-		{: RESULT = new ExprBin(e1, OperadorB.DESIGUAL, e2); :}
-		|	expr2:e
-		{: RESULT = e; :}
-		;
+		{:  RESULT = new ExprBin(e1, OperadorB.IGUAL, e2); :}
+        |   expr:e1 DIF:o expr2:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.DESIGUAL, e2); :}
+        |   expr2:e
+		{:  RESULT = e; :}
+        ;
 		
 expr2	::= expr2:e1 MAS term:e2
-		{: RESULT = new ExprBin(e1, OperadorB.SUMA ,e2); :}
-		|	expr2:e1 MENOS term:e2
-		{: RESULT = new ExprBin(e1, OperadorB.RESTA ,e2); :}
-		| 	expr2:e1 OLOG term:e2
-		{: RESULT = new ExprBin(e1, OperadorB.OR ,e2); :}
-		|	term:t
-		{: RESULT = t; :}
-		;
+		{:  RESULT = new ExprBin(e1, OperadorB.SUMA ,e2); :}
+        |   expr2:e1 MENOS term:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.RESTA ,e2); :}
+        |   expr2:e1 OLOG term:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.OR ,e2); :}
+        |   term:t
+		{:  RESULT = t; :}
+        ;
 
 term	::= term:e1 ENTRE fact:e2
 		{: RESULT = new ExprBin(e1, OperadorB.DIVR ,e2); :}
-		|	term:e1 POR fact:e2
+        |   term:e1 POR fact:e2
 		{: RESULT = new ExprBin(e1, OperadorB.MULT ,e2); :}	
-		|	term:e1 YLOG fact:e2
+        |   term:e1 YLOG fact:e2
 		{: RESULT = new ExprBin(e1, OperadorB.AND ,e2); :}
-		|	term:e1 DIV fact:e2
+        |   term:e1 DIV fact:e2
 		{: RESULT = new ExprBin(e1, OperadorB.DIVE ,e2); :}
-		|	term:e1 MOD fact:e2
+        |   term:e1 MOD fact:e2
 		{: RESULT = new ExprBin(e1, OperadorB.MOD ,e2); :}		
-		|	fact:f
+        |   fact:f
 		{: RESULT = f; :}
 		;
 	
 fact	::= fact:e1 MAYOR fact2:e2
 		{: RESULT = new ExprBin(e1, OperadorB.MAYOR, e2); :}
-		|	fact:e1 MENOR fact2:e2
+        |   fact:e1 MENOR fact2:e2
 		{: RESULT = new ExprBin(e1, OperadorB.MENOR ,e2); :}
-		|	fact2:f
+        |   fact2:f
 		{: RESULT = f; :}
-		;
+        ;
 		
 fact2	::= fact2:e1 MAYORIGUAL fact3:e2
 		{: RESULT = new ExprBin(e1, OperadorB.MAYORIGUAL ,e2); :}
-		|	fact2:e1 MENORIGUAL fact3:e2 
+        |   fact2:e1 MENORIGUAL fact3:e2 
 		{: RESULT = new ExprBin(e1, OperadorB.MENORIGUAL ,e2); :}
-		|	fact3:f
+        |   fact3:f
 		{: RESULT = f; :}
-		;
+        ;
+
 		
-fact3	::=	APARENT expr:e CPARENT 
-		{: RESULT = e; :}
-		|	NUMERO:n 
-		{: RESULT = new Factor (Tipo.INT, n); :}
-		|	MENOS fact3:f 
-		{: 	RESULT = new ExprUna (OperadorU.MENOS, f); :}
-		|	REAL:n 
-		{: RESULT = new Factor (Tipo.FLOAT, n); :}
-		|	TECHO APARENT fact3:f CPARENT
-		{: 	RESULT = new ExprUna (OperadorU.TECHO, f); :}
-		|	PISO APARENT fact3:f CPARENT
-		{: 	RESULT = new ExprUna (OperadorU.PISO, f); :}
-		|	REDONDEAR APARENT fact3:f CPARENT
-		{: 	RESULT = new ExprUna (OperadorU.REDONDEO, f); :}
-		|	NOLOG fact3:f
-		{: 	RESULT = new ExprUna (OperadorU.NOT, f); :}
-		|	ID:i 
-		{: Factor e = new Factor (Tipo.ID, i); e.addID(i); RESULT = e; :}
-		|	CIERTO:c 
+fact3	::= APARENT expr:e CPARENT 
+		{:  RESULT = e; :}
+        |   NUMERO:n 
+		{:  RESULT = new Factor (Tipo.INT, n); :}
+        |   MENOS fact3:f 
+		{:  RESULT = new ExprUna (OperadorU.MENOS, f); :}
+        |   REAL:n 
+		{:  RESULT = new Factor (Tipo.FLOAT, n); :}
+        |   TECHO APARENT fact3:f CPARENT
+		{:  RESULT = new ExprUna (OperadorU.TECHO, f); :}
+        |   PISO APARENT fact3:f CPARENT
+		{:  RESULT = new ExprUna (OperadorU.PISO, f); :}
+        |   REDONDEAR APARENT fact3:f CPARENT
+		{:  RESULT = new ExprUna (OperadorU.REDONDEO, f); :}
+        |   NOLOG fact3:f
+		{:  RESULT = new ExprUna (OperadorU.NOT, f); :}
+        |   ID:i 
+		{:  Factor e = new Factor (Tipo.ID, i); RESULT = e; :}
+        |   CIERTO:c 
 		{: RESULT= new Factor(Tipo.BOOL, new Booleano(true)); :}
-		|	FALSO:c 
+        |   FALSO:c 
 		{: RESULT= new Factor(Tipo.BOOL, new Booleano(false)); :}
-		;
+        ;
