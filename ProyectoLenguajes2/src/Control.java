@@ -1,5 +1,4 @@
-//PRUEBA
-
+import com.sun.org.apache.bcel.internal.generic.SWITCH;
 import java.io.*;
 import java.lang.*;
 import java.util.*;
@@ -104,18 +103,14 @@ abstract class Expresion {
         System.out.println(this.toString());
     }
     
-    /**
-     * Metodo que retorna los identificadores usados en esta expresion
-     * @return Una lista de los identificadores usados en esta expresion
-     */
-    public abstract List<String> getIdentificadores();
+    public abstract boolean esCorrecta(Control c);
     
-    void ids(){
-        Iterator i = this.getIdentificadores().iterator();
-        while(i.hasNext()){
-            System.out.print(i.next());
-        }
-        System.out.println("");
+    public abstract String getTipo(Control c);
+    
+    void showError(String e, String tipoEsperado, String tipoHallado){
+        String error = "Error de tipo en la expresion"+e+" se esperaba ";
+        error += tipoEsperado+" y se hallo "+tipoHallado;
+        System.out.println(error);
     }
     
 }
@@ -134,6 +129,7 @@ class ExprBin extends Expresion {
     //Sub-Expresion mas a la derecha
     private Expresion ExprDer;
     
+    //private Control control;
     /**
      * Constructor de Expresiones cuyo operdaor es binario
      * @param EI subexpresion mas hacia la izquierda
@@ -150,13 +146,90 @@ class ExprBin extends Expresion {
         return "(" + ExprIzq +" "+ Op +" "+ ExprDer + ")";
     }
 
-    public List<String> getIdentificadores() {
-        List<String> l = new LinkedList<String>();
-        l.addAll(this.ExprIzq.getIdentificadores());
-        l.addAll(this.ExprDer.getIdentificadores());
-        return l;
+    public String getTipo(Control c) {
+        switch(this.Op){
+            case AND:
+            case OR:
+            case IGUAL:
+            case DESIGUAL:
+            case MAYOR:
+            case MENOR:
+            case MAYORIGUAL:
+            case MENORIGUAL:
+                return "booleano";
+            case MOD:
+            case DIVE:
+                return "entero";
+            case DIVR:
+                return "real";
+            case SUMA:
+            case RESTA:
+            case MULT:
+                if(this.ExprDer.getTipo(c).equals("real") || this.ExprIzq.getTipo(c).equals("real")){
+                    return "real";
+                }else{
+                    return "entero";
+                }
+            
+        }
+        return "error";
     }
     
+
+    public boolean esCorrecta(Control c) {
+        if (this.ExprIzq.esCorrecta(c) && this.ExprDer.esCorrecta(c)){
+            String tipoEsperado = "error";
+            String tipoi = this.ExprIzq.getTipo(c);
+            String tipod = this.ExprDer.getTipo(c);
+            switch(this.Op){
+                case AND:
+                case OR:
+                    tipoEsperado = "booleano";
+                    break;
+                case IGUAL:
+                case DESIGUAL:
+                    if(tipoi.equals(tipod)){
+                        return true;
+                    }else{
+                        tipoEsperado = "entero o real";
+                        break;
+                    }
+                    
+                case MOD:
+                case DIVE:
+                    tipoEsperado = "entero";
+                    break;
+                case DIVR:
+                    tipoEsperado = "real";
+                    break;
+                case MAYOR:
+                case MENOR:
+                case MAYORIGUAL:
+                case MENORIGUAL:
+                case SUMA:
+                case RESTA:
+                case MULT:
+                    tipoEsperado = "entero o real";
+                    break;
+
+            }
+            
+            boolean izq = tipoEsperado.contains(tipoi);
+            boolean der = tipoEsperado.contains(tipod);
+            
+            if( izq && der ){
+                return true;
+            }else{
+                this.showError(this.toString(),tipoEsperado, tipoi+" y "+tipod);
+                return false;
+            }
+        
+        }else{
+            return false;
+        }
+    
+    }
+
 }
 
 /**
@@ -183,12 +256,55 @@ class ExprUna extends Expresion {
     public String toString(){
         return "" + Op + E;
     }
+    
+    public boolean esCorrecta(Control c) {
+        
+        if (this.E.esCorrecta(c)){
+            String tipoEsperado = "";
+            switch (this.Op){
+                case PISO:
+                case REDONDEO:
+                case TECHO:
+                    tipoEsperado = "real";
+                    break;
+                case NOT:
+                    tipoEsperado = "booleano";
+                    break;
+                case MENOS:
+                    tipoEsperado = "real o entero";
+                    break;
+            }
+            if(tipoEsperado.contains(this.E.getTipo(c))){
+                this.showError(this.toString(),tipoEsperado, this.E.getTipo(c));
+                return false;
+            }else{
+                return true;
+            }
+            
+        }else{
+            return false;
+        }
+    }
 
-    public List<String> getIdentificadores() {
-        return this.E.getIdentificadores();
+    public String getTipo(Control c) {
+        switch (this.Op){
+            case PISO:
+            case REDONDEO:
+            case TECHO:
+                return "entero";
+            case NOT:
+                return "booleano";
+            case MENOS:
+                if(this.E.getTipo(c).equals("real")||this.E.getTipo(c).equals("entero")){
+                    return this.E.getTipo(c);
+                }else{
+                    return "error";
+                }
+        }
+        return "error";
     }
     
-    
+
 }
 
 /**
@@ -196,14 +312,14 @@ class ExprUna extends Expresion {
  */
 class Factor extends Expresion {
     
+    private Control control;
+    
     //Tipo de la Expresion
     private Tipo tipo;
     
     //Valor de la Expresion
     private Object valor;
     
-    //Lista de identificadores en esta expresion
-    private List<String> l;
     /**
      * Constructor de Expresiones Atomicas
      * @param t tipo de la Expresion
@@ -211,27 +327,46 @@ class Factor extends Expresion {
      */
     public Factor (Tipo t, Object v){
         this.tipo = t;
-        this.valor = v;
-        this.l = new LinkedList<String>();
+        this.valor = v; 
     }
     
     public String toString(){
         return valor.toString();
     }
 
-    /**
-     * Agrega un identificador a la lista de identificadores
-     * @param s Identificador a agregar
-     * @return <b>true</b> si se realizo la operacion, <b>false</b> sino.
-     */
-    public boolean addID(String s){
-        return this.l.add(s);
+    public boolean esCorrecta(Control c) {
+        //return c.estaDefinida((String)this.valor);
+        if(this.tipo == tipo.ID && !c.estaDefinida((String)this.valor)){
+            System.out.println(""+((String)this.valor) + " no esta definida");
+            return false;
+        }else{
+            //System.out.println("Valor correcto: "+this.valor.toString());
+            return true;
+            
+        }
     }
-    
-    public List<String> getIdentificadores() {
-        return this.l;
+
+    public String getTipo(Control c) {
+        switch (this.tipo){
+            case BOOL:
+                return "booleano";
+            case FLOAT:
+                return "real";
+            case INT:
+                return "entero";
+            case ID:
+                Informacion info = c.getInfo((String)this.valor);
+                if(info != null){
+                    return info.getTipo();
+                }else{
+                    return "error";
+                }
+                
+        }
+        return "error";
     }
-    
+
+
 }
 
 /**
@@ -246,6 +381,11 @@ abstract class Inst {
     public void imprimir(){
         System.out.println(this.toString());
     }
+    
+    public abstract boolean esCorrecta(Control c);
+    
+    public abstract void setParent(Control c);
+
 }
 
 /**
@@ -273,6 +413,14 @@ class InstDecl extends Inst {
         return Tipo +" "+ Var+";";
     }
 
+    public boolean esCorrecta(Control c) {
+        return true;
+    }
+
+    public void setParent(Control c) {
+    }
+
+
 }
 
 /**
@@ -285,21 +433,34 @@ class InstDeclAsig extends Inst {
     private String Tipo;
     
     //Nombre de la variable declarada
-    private InstAsig I;
+    private String Variable;
+    
+    //Expresion que se le asigna a la variable
+    private Expresion E;
     
     /**
      * Constructor de intrucciones de declaracion y asignacion simultanea
      * @param t Tipo de la variable declarada
      * @param i Instruccion de Asignacion
      */
-    public InstDeclAsig(String t, InstAsig i) {
+    public InstDeclAsig(String t, String v, Expresion e) {
         this.Tipo = t;
-        this.I = i;
+        this.Variable = v;
+        this.E =e;
     }
 
     public String toString() {
-        return Tipo+" "+I.toString();
+        return Tipo+" "+Variable+" := "+E+";";
     }
+
+    public boolean esCorrecta(Control c) {
+        return E.esCorrecta(c);
+    }
+
+    public void setParent(Control c) {
+    }
+    
+
 }
 
 /**
@@ -326,6 +487,22 @@ class InstAsig extends Inst {
     public String toString(){
         return Variable + " := " + E.toString() + ";";
     }
+
+    public boolean esCorrecta(Control c) {
+        if(!c.estaDefinida(this.Variable)){
+            System.out.println("Variable "+this.Variable+" no ha sido definida");
+            E.esCorrecta(c);
+            return false;
+        }else{
+            return E.esCorrecta(c);
+        }
+        
+    }
+
+    public void setParent(Control c) {
+    }
+
+
 }
 
 /**
@@ -352,6 +529,16 @@ class InstIf extends Inst {
     public String toString(){
         return "si "+Condicion.toString()+"\n"+inst+"fins;";
     }
+
+    public boolean esCorrecta(Control c) {
+        return this.Condicion.esCorrecta(c);
+    }
+
+    public void setParent(Control c) {
+        this.inst.setBloqueExterno(c);
+    }
+    
+
 }
 
 /**
@@ -375,6 +562,12 @@ class InstIfElse extends InstIf {
     public String toString() {
         return super.toString().replaceFirst("fins","sino\n"+instElse+"fins");
     }
+
+    public void setParent(Control c) {
+        super.setParent(c);
+        this.instElse.setBloqueExterno(c);
+    }
+
 
 }
 
@@ -403,6 +596,47 @@ class InstDo extends Inst {
         return "Hacer " + Condicion +"\n"+inst+"finh;";
     }
 
+    public boolean esCorrecta(Control c) {
+        return this.Condicion.esCorrecta(c);
+    }
+
+    public void setParent(Control c) {
+        this.inst.setBloqueExterno(c);
+    }
+    
+
+}
+
+class Informacion{
+    String nombre;
+    String tipo;
+    Object valor;
+    
+    public Informacion(String n, String t, Object v){
+        this.nombre = n;
+        this.tipo = t;
+        this.valor = v;   
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public Object getValor() {
+        return valor;
+    }
+
+    public void setValor(Object valor) {
+        this.valor = valor;
+    }
+    
+    public String toString(){
+        return nombre + " : " + tipo + " : " + valor;
+    }
 }
 
 /**
@@ -415,7 +649,18 @@ class Control{
     private List<Inst> inst;
         
     //Tabla de Simbolos
-    private HashMap<String,String> tabla;
+    private HashMap<String,Informacion> tabla;
+    
+    //Bloque externo a este
+    private Control bloqueExterno;
+
+    public void setBloqueExterno(Control bloqueExterno) {
+        this.bloqueExterno = bloqueExterno;
+    }
+
+    public Control getBloqueExterno() {
+        return bloqueExterno;
+    }
     
     /**
      * Escribe en consola tanto las instrucciones del programa
@@ -423,17 +668,34 @@ class Control{
      */
     public void imprimir(){
         System.out.println(this.toString());
-        
     }
     
     /**
      * Agrega los contenidos de otro objeto <b>Control</b> a este
      * @param c otro objeto de tipo <b>Control</b>
      */
-    public void agregar(Control c){
-        this.inst.addAll(c.inst);
-        // quizas hacer esto con un mejor chequeo
-        this.tabla.putAll(c.tabla);
+    public boolean agregar(Control c){
+        //this.bloqueExterno = c.bloqueExterno;
+        boolean flag = true;
+        Iterator<Inst> it = c.inst.iterator();
+        while(it.hasNext()){
+            Inst instr = it.next();
+            flag = instr.esCorrecta(this) && flag;
+            instr.setParent(this);
+            this.inst.add(instr);
+        }
+        
+        Iterator<String> i = c.tabla.keySet().iterator();
+        while(i.hasNext()){
+            String n = i.next();
+            if(this.tabla.containsKey(n)){
+                System.out.println("Variable "+n+" definida mas de una vez");
+                flag = false;
+            }else{
+                this.tabla.put(n,c.tabla.get(n));
+            }
+        }
+        return flag;
     }
     
     /**
@@ -449,8 +711,8 @@ class Control{
      * @param id Nombre de la variable
      * @param tipo Tipo de la variable
      */
-    public void agregarID(String id, String tipo){
-        this.tabla.put(id,tipo);
+    public void agregarID(String id, Informacion info){
+        this.tabla.put(id,info);
     }
     
     /**
@@ -459,7 +721,33 @@ class Control{
      * @return <b>true</b> si esta definida, <b>false</b> sino.
      */
     public boolean estaDefinida(String s){
-        return this.tabla.containsKey(s);
+        
+        if ( this.tabla.containsKey(s) ){
+            return true;
+        }else if ( this.bloqueExterno != null ){
+            return this.bloqueExterno.estaDefinida(s);
+        }else{
+            return false;
+        }
+        
+        
+        
+    }
+    
+    public Control getTemplate(){
+        Control c = new Control();
+        c.bloqueExterno = this;
+        return c;
+    }
+    
+    public Informacion getInfo(String s){
+        if ( this.tabla.containsKey(s) ){
+            return this.tabla.get(s);
+        }else if ( this.bloqueExterno != null ){
+            return this.bloqueExterno.getInfo(s);
+        }else{
+            return null;
+        }
     }
     
     /**
@@ -467,7 +755,7 @@ class Control{
      * de Simbolos
      */
     Control(){
-        this.tabla = new HashMap<String,String>();
+        this.tabla = new HashMap<String,Informacion>();
         this.inst = new LinkedList<Inst>();
     }
     
@@ -488,9 +776,9 @@ class Control{
      * @param id Nombre de la variable
      * @param tipo Tipo de la variable
      */
-    Control(Inst i, String id, String tipo){
+    Control(Inst i, String id, Informacion info){
         this(i);
-        this.agregarID(id,tipo);
+        this.agregarID(id,info);
     }
 
     public String toString() {
