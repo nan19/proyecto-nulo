@@ -1,17 +1,11 @@
 comienzo
 entero a;			
 booleano b;		
-z := 3;
 
-si ( z > 0 )			
-    a := 5;			
-sino
-    b := 10;		
+a := a*a + a*a - a/a + a div 2 + a mod 3 = b*b *b > 5;
+
+si (a > 0)
+    a:= 1;
 fins;
 
-hacer ( b > 0 )			
-    c := a + c/2 + b;	
-    b := b - 2;		
-finh;
-			
 fin

@@ -86,7 +86,7 @@ enum OperadorU {
 /**
  * Enumeracion que contiene los tipos basicos del lenguaje
  */
-enum Tipo {INT,FLOAT,ID,BOOL}
+enum TipoF {INT,FLOAT,ID,BOOL}
 
 
 /**
@@ -315,7 +315,7 @@ class Factor extends Expresion {
     private Control control;
     
     //Tipo de la Expresion
-    private Tipo tipo;
+    private TipoF tipo;
     
     //Valor de la Expresion
     private Object valor;
@@ -325,7 +325,7 @@ class Factor extends Expresion {
      * @param t tipo de la Expresion
      * @param v valor de la Expresion
      */
-    public Factor (Tipo t, Object v){
+    public Factor (TipoF t, Object v){
         this.tipo = t;
         this.valor = v; 
     }
@@ -429,7 +429,7 @@ class InstDecl extends Inst {
  */
 class InstDeclAsig extends Inst {
     
-    //Nombre del Tipo de la variable declarada
+    //Nombre del TipoF de la variable declarada
     private String Tipo;
     
     //Nombre de la variable declarada
