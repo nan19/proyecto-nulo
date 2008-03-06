@@ -1,5 +1,5 @@
 #! /bin/bash
 
 jlex *.lex
-cup *.cup
+cup -expect 6 *.cup
 #javac *.java

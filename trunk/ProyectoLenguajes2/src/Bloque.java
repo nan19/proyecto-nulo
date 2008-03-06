@@ -103,9 +103,9 @@ abstract class Expresion {
         System.out.println(this.toString());
     }
     
-    public abstract boolean esCorrecta(Control c);
+    public abstract boolean esCorrecta(Bloque c);
     
-    public abstract String getTipo(Control c);
+    public abstract String getTipo(Bloque c);
     
     void showError(String e, String tipoEsperado, String tipoHallado){
         String error = "Error de tipo en la expresion"+e+" se esperaba ";
@@ -129,7 +129,7 @@ class ExprBin extends Expresion {
     //Sub-Expresion mas a la derecha
     private Expresion ExprDer;
     
-    //private Control control;
+    //private Bloque control;
     /**
      * Constructor de Expresiones cuyo operdaor es binario
      * @param EI subexpresion mas hacia la izquierda
@@ -146,7 +146,7 @@ class ExprBin extends Expresion {
         return "(" + ExprIzq +" "+ Op +" "+ ExprDer + ")";
     }
 
-    public String getTipo(Control c) {
+    public String getTipo(Bloque c) {
         switch(this.Op){
             case AND:
             case OR:
@@ -176,7 +176,7 @@ class ExprBin extends Expresion {
     }
     
 
-    public boolean esCorrecta(Control c) {
+    public boolean esCorrecta(Bloque c) {
         if (this.ExprIzq.esCorrecta(c) && this.ExprDer.esCorrecta(c)){
             String tipoEsperado = "error";
             String tipoi = this.ExprIzq.getTipo(c);
@@ -257,7 +257,7 @@ class ExprUna extends Expresion {
         return "" + Op + E;
     }
     
-    public boolean esCorrecta(Control c) {
+    public boolean esCorrecta(Bloque c) {
         
         if (this.E.esCorrecta(c)){
             String tipoEsperado = "";
@@ -286,7 +286,7 @@ class ExprUna extends Expresion {
         }
     }
 
-    public String getTipo(Control c) {
+    public String getTipo(Bloque c) {
         switch (this.Op){
             case PISO:
             case REDONDEO:
@@ -312,7 +312,7 @@ class ExprUna extends Expresion {
  */
 class Factor extends Expresion {
     
-    private Control control;
+    private Bloque control;
     
     //Tipo de la Expresion
     private TipoF tipo;
@@ -334,7 +334,7 @@ class Factor extends Expresion {
         return valor.toString();
     }
 
-    public boolean esCorrecta(Control c) {
+    public boolean esCorrecta(Bloque c) {
         //return c.estaDefinida((String)this.valor);
         if(this.tipo == tipo.ID && !c.estaDefinida((String)this.valor)){
             System.out.println(""+((String)this.valor) + " no esta definida");
@@ -346,7 +346,7 @@ class Factor extends Expresion {
         }
     }
 
-    public String getTipo(Control c) {
+    public String getTipo(Bloque c) {
         switch (this.tipo){
             case BOOL:
                 return "booleano";
@@ -382,9 +382,9 @@ abstract class Inst {
         System.out.println(this.toString());
     }
     
-    public abstract boolean esCorrecta(Control c);
+    public abstract boolean esCorrecta(Bloque c);
     
-    public abstract void setParent(Control c);
+    public abstract void setParent(Bloque c);
 
 }
 
@@ -413,11 +413,11 @@ class InstDecl extends Inst {
         return Tipo +" "+ Var+";";
     }
 
-    public boolean esCorrecta(Control c) {
+    public boolean esCorrecta(Bloque c) {
         return true;
     }
 
-    public void setParent(Control c) {
+    public void setParent(Bloque c) {
     }
 
 
@@ -453,11 +453,11 @@ class InstDeclAsig extends Inst {
         return Tipo+" "+Variable+" := "+E+";";
     }
 
-    public boolean esCorrecta(Control c) {
+    public boolean esCorrecta(Bloque c) {
         return E.esCorrecta(c);
     }
 
-    public void setParent(Control c) {
+    public void setParent(Bloque c) {
     }
     
 
@@ -488,7 +488,7 @@ class InstAsig extends Inst {
         return Variable + " := " + E.toString() + ";";
     }
 
-    public boolean esCorrecta(Control c) {
+    public boolean esCorrecta(Bloque c) {
         if(!c.estaDefinida(this.Variable)){
             System.out.println("Variable "+this.Variable+" no ha sido definida");
             E.esCorrecta(c);
@@ -499,7 +499,7 @@ class InstAsig extends Inst {
         
     }
 
-    public void setParent(Control c) {
+    public void setParent(Bloque c) {
     }
 
 
@@ -514,14 +514,14 @@ class InstIf extends Inst {
     private Expresion Condicion;
     
     //Instrucciones a ejecutar si la condicion se cumple
-    private Control inst;
+    private Bloque inst;
     
     /**
      * Constructor de una expresion condicional
      * @param e Expresion de la Condicion
      * @Param l Instrucciones a ejecutar si el condicional se cumple
      */
-    public InstIf (Expresion e, Control c) {
+    public InstIf (Expresion e, Bloque c) {
         this.Condicion = e;
         this.inst = c;
     }
@@ -530,11 +530,11 @@ class InstIf extends Inst {
         return "si "+Condicion.toString()+"\n"+inst+"fins;";
     }
 
-    public boolean esCorrecta(Control c) {
+    public boolean esCorrecta(Bloque c) {
         return this.Condicion.esCorrecta(c);
     }
 
-    public void setParent(Control c) {
+    public void setParent(Bloque c) {
         this.inst.setBloqueExterno(c);
     }
     
@@ -547,14 +547,14 @@ class InstIf extends Inst {
 class InstIfElse extends InstIf {
     
     //Intrucciones a ejecutar si la Condicion no es cierta
-    private Control instElse;
+    private Bloque instElse;
     /**
      * Constructor de la instruccion condicional con instrucciones alternativas
      * @param e Condicion
      * @param l1 instrucciones a ejecutar si la Condicion es cierta
      * @param l2 instrucciones a ejecutar si la condicion es falsa
      */
-    public InstIfElse (Expresion e, Control c1, Control c2) {
+    public InstIfElse (Expresion e, Bloque c1, Bloque c2) {
         super(e,c1);
         this.instElse = c2;
     }
@@ -563,7 +563,7 @@ class InstIfElse extends InstIf {
         return super.toString().replaceFirst("fins","sino\n"+instElse+"fins");
     }
 
-    public void setParent(Control c) {
+    public void setParent(Bloque c) {
         super.setParent(c);
         this.instElse.setBloqueExterno(c);
     }
@@ -580,14 +580,14 @@ class InstDo extends Inst {
     private Expresion Condicion;
     
     //Cuerpo de la iteracion
-    private Control inst;
+    private Bloque inst;
     
     /**
      * Constructor de la Instruccion de Iteracion
      * @param e Condicion de la iteracion
      * @param l Cuerpo de la Iteracion
      */
-    public InstDo (Expresion e, Control c) {
+    public InstDo (Expresion e, Bloque c) {
         this.Condicion = e;
         this.inst = c;
     }
@@ -596,11 +596,11 @@ class InstDo extends Inst {
         return "Hacer " + Condicion +"\n"+inst+"finh;";
     }
 
-    public boolean esCorrecta(Control c) {
+    public boolean esCorrecta(Bloque c) {
         return this.Condicion.esCorrecta(c);
     }
 
-    public void setParent(Control c) {
+    public void setParent(Bloque c) {
         this.inst.setBloqueExterno(c);
     }
     
@@ -643,23 +643,29 @@ class Informacion{
  * Clase que envuelve a la lista de instrucciones y la tabla de simbolos del
  * programa
  */
-class Control{
+class Bloque{
     
     //Lista de Instrucciones
     private List<Inst> inst;
         
     //Tabla de Simbolos
-    private HashMap<String,Informacion> tabla;
+    //private HashMap<String,Informacion> tabla;
+    
+    private TablaSim tabla;
     
     //Bloque externo a este
-    private Control bloqueExterno;
+    private Bloque bloqueExterno;
 
-    public void setBloqueExterno(Control bloqueExterno) {
+    public void setBloqueExterno(Bloque bloqueExterno) {
         this.bloqueExterno = bloqueExterno;
     }
 
-    public Control getBloqueExterno() {
+    public Bloque getParent() {
         return bloqueExterno;
+    }
+    
+    public TablaSim getTS(){
+        return this.tabla;
     }
     
     /**
@@ -671,10 +677,11 @@ class Control{
     }
     
     /**
-     * Agrega los contenidos de otro objeto <b>Control</b> a este
-     * @param c otro objeto de tipo <b>Control</b>
+     * Agrega los contenidos de otro objeto <b>Bloque</b> a este
+     * 
+     * @param c otro objeto de tipo <b>Bloque</b>
      */
-    public boolean agregar(Control c){
+    public boolean agregar(Bloque c){
         //this.bloqueExterno = c.bloqueExterno;
         boolean flag = true;
         Iterator<Inst> it = c.inst.iterator();
@@ -685,16 +692,8 @@ class Control{
             this.inst.add(instr);
         }
         
-        Iterator<String> i = c.tabla.keySet().iterator();
-        while(i.hasNext()){
-            String n = i.next();
-            if(this.tabla.containsKey(n)){
-                System.out.println("Variable "+n+" definida mas de una vez");
-                flag = false;
-            }else{
-                this.tabla.put(n,c.tabla.get(n));
-            }
-        }
+        this.tabla.addAll(c.tabla);
+ 
         return flag;
     }
     
@@ -712,7 +711,7 @@ class Control{
      * @param tipo Tipo de la variable
      */
     public void agregarID(String id, Informacion info){
-        this.tabla.put(id,info);
+        this.tabla.add(id,info);
     }
     
     /**
@@ -720,8 +719,9 @@ class Control{
      * @param s Nombre de la variable a verificar
      * @return <b>true</b> si esta definida, <b>false</b> sino.
      */
+    
     public boolean estaDefinida(String s){
-        
+        /*
         if ( this.tabla.containsKey(s) ){
             return true;
         }else if ( this.bloqueExterno != null ){
@@ -729,18 +729,14 @@ class Control{
         }else{
             return false;
         }
+        */
+        return this.tabla.isDefined(s);
         
         
-        
-    }
-    
-    public Control getTemplate(){
-        Control c = new Control();
-        c.bloqueExterno = this;
-        return c;
     }
     
     public Informacion getInfo(String s){
+        /*
         if ( this.tabla.containsKey(s) ){
             return this.tabla.get(s);
         }else if ( this.bloqueExterno != null ){
@@ -748,26 +744,39 @@ class Control{
         }else{
             return null;
         }
+         */
+        return this.tabla.get(s);
     }
+    
+    Bloque(Bloque bExt){
+        this.bloqueExterno = bExt;
+        TablaSim tsp = (bExt != null ) ? bExt.tabla : null;
+        this.tabla = new TablaSim(tsp);
+        this.inst = new LinkedList<Inst>();
+    }
+    
     
     /**
      * Constructor del envoltorio para la Lista de Instrucciones y para la Tabla
      * de Simbolos
      */
-    Control(){
-        this.tabla = new HashMap<String,Informacion>();
+    Bloque(){
+        this.bloqueExterno = null;
+        this.tabla = new TablaSim(null);
         this.inst = new LinkedList<Inst>();
     }
     
-    /**
+    /*
      * Constructor del envoltorio para la Lista de Instrucciones y para la Tabla
      * de Simbolos. Agrega una instrucciona al nuevo objeto.
      * @param i Instruccion a agregar
      */
-    Control(Inst i){
+    /*
+    Bloque(Inst i){
         this();
         this.agregarInst(i);
     }
+     */
     
     /**
      * Constructor del envoltorio para la Lista de Instrucciones y para la Tabla
@@ -776,11 +785,14 @@ class Control{
      * @param id Nombre de la variable
      * @param tipo Tipo de la variable
      */
-    Control(Inst i, String id, Informacion info){
-        this(i);
+    Bloque(Inst i, String id, Informacion info){
+        this();
+        this.agregarInst(i);
         this.agregarID(id,info);
     }
 
+    
+    
     public String toString() {
         Inst i;
         String acum = "";
@@ -789,7 +801,70 @@ class Control{
             acum+= i.toString()+"\n";
             
         }
+        /*
 	acum += "Tabla:\n";
+	Iterator k = this.tabla.keySet().iterator();
+        Iterator v = this.tabla.values().iterator();
+        int j = 0;
+        while(k.hasNext()){
+            acum += ""+(j+1)+" "+k.next()+ " : "+v.next()+"\n";
+            j++;
+        }
+         */
+        acum += this.tabla.toString();
+        return acum;
+    }
+
+}
+
+class TablaSim{
+    private HashMap<String,Informacion> tabla;
+    private TablaSim parent;
+    
+    public TablaSim(TablaSim p){
+        this.parent = p;
+        this.tabla = new HashMap<String,Informacion>();
+    }
+    
+    public void add(String id, Informacion i){
+        this.tabla.put(id,i);
+    }
+    
+    public void addAll(TablaSim ts){
+        this.tabla.putAll(ts.tabla);
+    }
+    
+    public Informacion get(String id){
+        if (this.tabla.containsKey(id)){
+            return this.tabla.get(id);
+        }else if (this.parent != null) {
+            return this.parent.get(id);
+        }else{
+            return null;
+        }
+        
+    }
+    
+    public boolean isDefinedLocally(String id){
+        return this.tabla.containsKey(id);
+    }
+    
+    public boolean isDefined(String id){
+        if(this.isDefinedLocally(id)){
+            return true;
+        }else if(this.parent != null){
+            return this.parent.isDefined(id);
+        }else{
+            return false;
+        }
+    }
+    
+    public TablaSim getParent(){
+        return this.parent;
+    }
+
+    public String toString() {
+        String acum = "Tabla:\n";
 	Iterator k = this.tabla.keySet().iterator();
         Iterator v = this.tabla.values().iterator();
         int j = 0;
@@ -799,7 +874,16 @@ class Control{
         }
         return acum;
     }
-
+    
+    public void set(String id,Informacion info){
+        if(this.isDefinedLocally(id)){
+            this.tabla.put(id,info);
+        }else if(this.parent != null){
+            this.parent.set(id,info);
+        }else{
+            //error
+        }
+    }
 }
 
 /**

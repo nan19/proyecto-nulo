@@ -12,6 +12,12 @@ import java_cup.runtime.*;
  * 
  */
 
+action code {:
+    Bloque bloque = new Bloque(null);
+:}
+
+
+
 /**
  * Definicion de los tokens generados por el escaner
  * con el tipo asociado.
@@ -61,104 +67,100 @@ terminal Float REAL;
  * Definicion de los simbolos no terminales de la
  * gramatica con el tipo de su atributo asociado.
  */
-non terminal Control s;
-non terminal Control lInst;
-non terminal Control inst;
-non terminal Control iDecl;
-non terminal Control iDeclA;
-non terminal Control iAsig;
-non terminal Control iSi;
-non terminal Control iSino;
-non terminal Control iHacer;
+non terminal Bloque s, bloq;
+non terminal Bloque lInst;
+non terminal Bloque inst;
+non terminal Bloque iDecl;
+non terminal Bloque iDeclA;
+non terminal Bloque iAsig;
+non terminal Bloque iSi;
+non terminal Bloque iSino;
+non terminal Bloque iHacer;
 non terminal Expresion expr, expr2, term, fact, fact2, fact3;
 non terminal OperadorB oBinEq, oBin, oBin2, oBinC;
+non terminal Bloque inicB, finB;
 
 /**
  * Gramatica del lenguaje.
  */
 
-s	::= COMIENZO lInst:c FIN
-            {: c.imprimir(); RESULT = c; :}
+s	::= COMIENZO bloq FIN
+            {: RESULT = bloque; :}
 	;
 
-lInst	::= lInst:c inst:i PYCOMA:p
-		{:  if(!c.agregar(i)){
-                        System.out.println("Error en la linea "+p.lineBegin);
-                    }
-                    RESULT = c; 
-                :}
-        |   inst:i PYCOMA
-		{: RESULT = i; :}
+bloq    ::= inicB lInst finB:b {: RESULT = b; :}
+        ;
+
+inicB   ::= {: bloque = new Bloque(bloque); :}
+        ;
+
+finB    ::= {: bloque.imprimir(); Bloque b = bloque; bloque = bloque.getParent(); RESULT = b; :}
+        ;
+
+lInst	::= lInst inst PYCOMA
+        |   inst PYCOMA
         ;
 		
-inst	::= iDecl:i
-		{: RESULT = i; :}
-        |   iDeclA:i
-		{: RESULT = i; :}
-        |   iAsig:i
-		{:RESULT = i; :}
-        |   iSi:i
-		{: RESULT = i; :}
-        |   iSino:i
-		{: RESULT = i; :}
-        |   iHacer:i
-		{: RESULT = i; :}
+inst	::= iDecl
+        |   iDeclA
+        |   iAsig
+        |   iSi
+        |   iSino
+        |   iHacer
         ;
 
 iDecl	::= DECLENTERO:t ID:i
-		{:  Informacion info = new Informacion(i,t.text,null);
-                    RESULT = new Control(new InstDecl(t.text, i),i,info); 
+		{:   Informacion info = new Informacion(i,t.text,null);
+                     bloque.getTS().add(i,info);
+                     bloque.agregarInst(new InstDecl(t.text, i));
                 :}
         |   DECLREAL:t ID:i
 		{:  Informacion info = new Informacion(i,t.text,null);
-                    RESULT = new Control(new InstDecl(t.text, i),i,info); 
+                    bloque.getTS().add(i,info);
+                    bloque.agregarInst(new InstDecl(t.text, i)); 
                 :}
         |   DECLBOOL:t ID:i
 		{:  Informacion info = new Informacion(i,t.text,null);
-                    RESULT = new Control(new InstDecl(t.text, i),i,info); 
+                    bloque.getTS().add(i,info);
+                    bloque.agregarInst(new InstDecl(t.text, i)); 
                 :}
         ;
 		
 iDeclA	::= DECLENTERO:t ID:i ASIGNACION expr:e
 		{:  Informacion info = new Informacion(i,t.text,null); //null hay q reemplazarlo
-                    RESULT = new Control(new InstDeclAsig(t.text, i,e ),i, info); 
+                    bloque.getTS().add(i,info);
+                    bloque.agregarInst(new InstDeclAsig(t.text, i,e )); 
                 :}
         |   DECLREAL:t ID:i ASIGNACION expr:e
 		{:  Informacion info = new Informacion(i,t.text,null); //null hay q reemplazarlo
-                    RESULT = new Control(new InstDeclAsig(t.text,i,e ),i, info); 
+                    bloque.getTS().add(i,info);
+                    bloque.agregarInst(new InstDeclAsig(t.text,i,e )); 
                 :}
         |   DECLBOOL:t ID:i ASIGNACION expr:e
 		{:  Informacion info = new Informacion(i,t.text,null); //null hay q reemplazarlo
-                    RESULT = new Control(new InstDeclAsig(t.text, i,e ),i, info); 
+                    bloque.getTS().add(i,info);
+                    bloque.agregarInst(new InstDeclAsig(t.text, i,e )); 
                 :}
         ;
 	
 iAsig	::= ID:d ASIGNACION expr:e
                 {:  
-                    RESULT = new Control(new InstAsig(d, e)); 
+                    bloque.agregarInst(new InstAsig(d, e)); 
                 :}
         ;
 
-iSi	::= SI APARENT expr:e CPARENT lInst:l FINSI
-		{:  Control c = new Control(new InstIf(e, l ));
-                    l.setBloqueExterno(c);
-                    RESULT =  c;
+iSi	::= SI APARENT expr:e CPARENT bloq:l FINSI
+		{:  bloque.agregarInst(new InstIf(e, l ));
                 :}
         ;
 		
-iSino 	::= SI APARENT expr:e CPARENT lInst:l1 SINO lInst:l2 FINSI
-		{:  Control c = new Control(new InstIfElse(e, l1,l2)); 
-                    l1.setBloqueExterno(c);
-                    l2.setBloqueExterno(c);
-                    RESULT =  c;
+iSino 	::= SI APARENT expr:e CPARENT bloq:l1 SINO bloq:l2 FINSI
+		{:  bloque.agregarInst(new InstIfElse(e, l1,l2)); 
                 :}
         ;
 		
-iHacer	::= HACER APARENT expr:e CPARENT lInst:l FINHACER
-		{:  Control c = new Control(new InstDo(e, l)); 
-                    l.setBloqueExterno(c);
-                    RESULT = c;
-                :}
+iHacer	::= HACER APARENT expr:e CPARENT bloq:l FINHACER
+		{:  bloque.agregarInst(new InstDo(e, l)); :}
         ;
 
 expr	::= expr:e1 oBinEq:o expr2:e2
@@ -167,20 +169,19 @@ expr	::= expr:e1 oBinEq:o expr2:e2
 		{:  RESULT = e; :}
         ;
 		
-oBinEq  ::=  IGUAL
-                {: RESULT = OperadorB.IGUAL; :}
-        |    DIF
-                {: RESULT = OperadorB.DESIGUAL; :}
+oBinEq  ::=  IGUAL  {: RESULT = OperadorB.IGUAL; :}
+        |    DIF    {: RESULT = OperadorB.DESIGUAL; :}
         ;
+
 expr2	::= expr2:e1 oBin:o term:e2
 		{:  RESULT = new ExprBin(e1, o ,e2); :}
         |   term:t
 		{:  RESULT = t; :}
         ;
 
-oBin    ::= MAS     {: RESULT = OperadorB.SUMA; :}
+oBin    ::= MAS     {: RESULT = OperadorB.SUMA;  :}
         |   MENOS   {: RESULT = OperadorB.RESTA; :}
-        |   OLOG    {: RESULT = OperadorB.OR; :}
+        |   OLOG    {: RESULT = OperadorB.OR;    :}
         ;
 
 term	::= term:e1 oBin2:o fact:e2
