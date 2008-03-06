@@ -4,6 +4,8 @@ booleano b;
 
 a := a*a + a*a - a/a + a div 2 + a mod 3 = b*b *b > 5;
 
+entero z := 0;
+
 si (a > 0)
     a:= 1;
     entero b;

@@ -69,23 +69,17 @@ terminal Float REAL;
  */
 non terminal Bloque s, bloq;
 non terminal Bloque lInst;
-non terminal Bloque inst;
-non terminal Bloque iDecl;
-non terminal Bloque iDeclA;
-non terminal Bloque iAsig;
-non terminal Bloque iSi;
-non terminal Bloque iSino;
-non terminal Bloque iHacer;
+non terminal Inst inst, iDecl, iDeclA, iAsig, iSi, iSino, iHacer;
 non terminal Expresion expr, expr2, term, fact, fact2, fact3;
 non terminal OperadorB oBinEq, oBin, oBin2, oBinC;
 non terminal Bloque inicB, finB;
-
+non terminal TokenValue tipo;
 /**
  * Gramatica del lenguaje.
  */
 
-s	::= COMIENZO bloq FIN
-            {: RESULT = bloque; :}
+s	::= COMIENZO bloq:b FIN
+            {: b.imprimir(); RESULT = bloque; :}
 	;
 
 bloq    ::= inicB lInst finB:b {: RESULT = b; :}
@@ -94,73 +88,54 @@ bloq    ::= inicB lInst finB:b {: RESULT = b; :}
 inicB   ::= {: bloque = new Bloque(bloque); :}
         ;
 
-finB    ::= {: bloque.imprimir(); Bloque b = bloque; bloque = bloque.getParent(); RESULT = b; :}
+finB    ::= {: Bloque b = bloque; bloque = bloque.getParent(); RESULT = b; :}
         ;
 
-lInst	::= lInst inst PYCOMA
-        |   inst PYCOMA
+lInst	::= lInst inst:i PYCOMA {: bloque.agregarInst(i); :}
+        |   inst:i PYCOMA       {: bloque.agregarInst(i); :}
         ;
 		
-inst	::= iDecl
-        |   iDeclA
-        |   iAsig
-        |   iSi
-        |   iSino
-        |   iHacer
+inst	::= iDecl:i     {: RESULT = i; :}
+        |   iDeclA:i    {: RESULT = i; :}
+        |   iAsig:i     {: RESULT = i; :}
+        |   iSi:i       {: RESULT = i; :}
+        |   iSino:i     {: RESULT = i; :}
+        |   iHacer:i    {: RESULT = i; :}
         ;
 
-iDecl	::= DECLENTERO:t ID:i
+iDecl	::= tipo:t ID:i
 		{:   Informacion info = new Informacion(i,t.text,null);
                      bloque.getTS().add(i,info);
-                     bloque.agregarInst(new InstDecl(t.text, i));
-                :}
-        |   DECLREAL:t ID:i
-		{:  Informacion info = new Informacion(i,t.text,null);
-                    bloque.getTS().add(i,info);
-                    bloque.agregarInst(new InstDecl(t.text, i)); 
-                :}
-        |   DECLBOOL:t ID:i
-		{:  Informacion info = new Informacion(i,t.text,null);
-                    bloque.getTS().add(i,info);
-                    bloque.agregarInst(new InstDecl(t.text, i)); 
+                     RESULT = new InstDecl(t.text, i);
                 :}
         ;
-		
-iDeclA	::= DECLENTERO:t ID:i ASIGNACION expr:e
+
+iDeclA	::= tipo:t ID:i ASIGNACION expr:e
 		{:  Informacion info = new Informacion(i,t.text,null); //null hay q reemplazarlo
                     bloque.getTS().add(i,info);
-                    bloque.agregarInst(new InstDeclAsig(t.text, i,e )); 
+                    RESULT = new InstDeclAsig(t.text, i,e );
                 :}
-        |   DECLREAL:t ID:i ASIGNACION expr:e
-		{:  Informacion info = new Informacion(i,t.text,null); //null hay q reemplazarlo
-                    bloque.getTS().add(i,info);
-                    bloque.agregarInst(new InstDeclAsig(t.text,i,e )); 
-                :}
-        |   DECLBOOL:t ID:i ASIGNACION expr:e
-		{:  Informacion info = new Informacion(i,t.text,null); //null hay q reemplazarlo
-                    bloque.getTS().add(i,info);
-                    bloque.agregarInst(new InstDeclAsig(t.text, i,e )); 
-                :}
+        ;
+
+tipo    ::= DECLENTERO:t    {: RESULT = t; :}
+        |   DECLREAL:t      {: RESULT = t; :}
+        |   DECLBOOL:t      {: RESULT = t; :}
         ;
 	
 iAsig	::= ID:d ASIGNACION expr:e
-                {:  
-                    bloque.agregarInst(new InstAsig(d, e)); 
-                :}
+                {: RESULT = new InstAsig(d, e); :}
         ;
 
 iSi	::= SI APARENT expr:e CPARENT bloq:l FINSI
-		{:  bloque.agregarInst(new InstIf(e, l ));
-                :}
+		{: RESULT = new InstIf(e, l ); :}
         ;
 		
 iSino 	::= SI APARENT expr:e CPARENT bloq:l1 SINO bloq:l2 FINSI
-		{:  bloque.agregarInst(new InstIfElse(e, l1,l2)); 
-                :}
+		{: RESULT = new InstIfElse(e, l1,l2); :}
         ;
 		
 iHacer	::= HACER APARENT expr:e CPARENT bloq:l FINHACER
-		{:  bloque.agregarInst(new InstDo(e, l)); :}
+		{: RESULT = new InstDo(e, l); :}
         ;
 
 expr	::= expr:e1 oBinEq:o expr2:e2

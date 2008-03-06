@@ -811,7 +811,7 @@ class Bloque{
             j++;
         }
          */
-        acum += this.tabla.toString();
+        //acum += this.tabla.toString();
         return acum;
     }
 
