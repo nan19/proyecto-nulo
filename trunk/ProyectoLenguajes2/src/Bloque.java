@@ -84,10 +84,13 @@ enum OperadorU {
 }
 
 /**
- * Enumeracion que contiene los tipos basicos del lenguaje
+ * Enumeracion que contiene los posibles tipos de los Factores
+ * @see Factor
  */
 enum TipoF {INT,FLOAT,ID,BOOL}
 
+
+enum TipoV {INT,FLOAT,BOOL,TYPE,FUN,PROC,USER}
 
 /**
  * Clase abstracta que sirve como Superclase para los diversos tipos de 
@@ -535,7 +538,7 @@ class InstIf extends Inst {
     }
 
     public void setParent(Bloque c) {
-        this.inst.setBloqueExterno(c);
+        this.inst.setParent(c);
     }
     
 
@@ -565,7 +568,7 @@ class InstIfElse extends InstIf {
 
     public void setParent(Bloque c) {
         super.setParent(c);
-        this.instElse.setBloqueExterno(c);
+        this.instElse.setParent(c);
     }
 
 
@@ -601,7 +604,7 @@ class InstDo extends Inst {
     }
 
     public void setParent(Bloque c) {
-        this.inst.setBloqueExterno(c);
+        this.inst.setParent(c);
     }
     
 
@@ -656,7 +659,7 @@ class Bloque{
     //Bloque externo a este
     private Bloque bloqueExterno;
 
-    public void setBloqueExterno(Bloque bloqueExterno) {
+    public void setParent(Bloque bloqueExterno) {
         this.bloqueExterno = bloqueExterno;
     }
 
@@ -674,27 +677,6 @@ class Bloque{
      */
     public void imprimir(){
         System.out.println(this.toString());
-    }
-    
-    /**
-     * Agrega los contenidos de otro objeto <b>Bloque</b> a este
-     * 
-     * @param c otro objeto de tipo <b>Bloque</b>
-     */
-    public boolean agregar(Bloque c){
-        //this.bloqueExterno = c.bloqueExterno;
-        boolean flag = true;
-        Iterator<Inst> it = c.inst.iterator();
-        while(it.hasNext()){
-            Inst instr = it.next();
-            flag = instr.esCorrecta(this) && flag;
-            instr.setParent(this);
-            this.inst.add(instr);
-        }
-        
-        this.tabla.addAll(c.tabla);
- 
-        return flag;
     }
     
     /**
@@ -721,30 +703,10 @@ class Bloque{
      */
     
     public boolean estaDefinida(String s){
-        /*
-        if ( this.tabla.containsKey(s) ){
-            return true;
-        }else if ( this.bloqueExterno != null ){
-            return this.bloqueExterno.estaDefinida(s);
-        }else{
-            return false;
-        }
-        */
-        return this.tabla.isDefined(s);
-        
-        
+        return this.tabla.isDefined(s); 
     }
     
     public Informacion getInfo(String s){
-        /*
-        if ( this.tabla.containsKey(s) ){
-            return this.tabla.get(s);
-        }else if ( this.bloqueExterno != null ){
-            return this.bloqueExterno.getInfo(s);
-        }else{
-            return null;
-        }
-         */
         return this.tabla.get(s);
     }
     
