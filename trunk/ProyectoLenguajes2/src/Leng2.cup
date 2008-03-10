@@ -16,8 +16,6 @@ action code {:
     Bloque bloque = new Bloque(null);
 :}
 
-
-
 /**
  * Definicion de los tokens generados por el escaner
  * con el tipo asociado.
@@ -70,16 +68,25 @@ terminal Float REAL;
 non terminal Bloque s, bloq;
 non terminal Bloque lInst;
 non terminal Inst inst, iDecl, iDeclA, iAsig, iSi, iSino, iHacer;
-non terminal Expresion expr, expr2, term, fact, fact2, fact3;
-non terminal OperadorB oBinEq, oBin, oBin2, oBinC;
+non terminal Expresion expr, fact;
 non terminal Bloque inicB, finB;
 non terminal TokenValue tipo;
+
+/**
+  * Orden de Precedencia
+  */
+precedence left IGUAL, DIF;
+precedence left OLOG;
+precedence left YLOG;
+precedence left MAYOR, MENOR, MAYORIGUAL, MENORIGUAL;
+precedence left MAS, MENOS;
+precedence left POR, ENTRE, DIV, MOD;
+
 /**
  * Gramatica del lenguaje.
  */
-
 s	::= COMIENZO bloq:b FIN
-            {: b.imprimir(); RESULT = bloque; :}
+        {: b.imprimir(); RESULT = bloque; :}
 	;
 
 bloq    ::= inicB lInst finB:b {: RESULT = b; :}
@@ -104,17 +111,21 @@ inst	::= iDecl:i     {: RESULT = i; :}
         ;
 
 iDecl	::= tipo:t ID:i
-		{:   Informacion info = new Informacion(i,t.text,null);
-                     bloque.getTS().add(i,info);
-                     RESULT = new InstDecl(t.text, i);
-                :}
+		{:  InstDecl inst = new InstDecl(t.text, i);
+			inst.esCorrecta(bloque);
+			Informacion info = new Informacion(i,t.text,null);
+			bloque.getTS().add(i,info);
+            RESULT = inst;
+        :}
         ;
 
 iDeclA	::= tipo:t ID:i ASIGNACION expr:e
-		{:  Informacion info = new Informacion(i,t.text,null); //null hay q reemplazarlo
-                    bloque.getTS().add(i,info);
-                    RESULT = new InstDeclAsig(t.text, i,e );
-                :}
+		{:  InstDeclAsig inst = new InstDeclAsig(t.text, i, e);
+			inst.esCorrecta(bloque);
+			Informacion info = new Informacion(i,t.text,null); //null hay q reemplazarlo
+            bloque.getTS().add(i,info);
+            RESULT = inst;
+        :}
         ;
 
 tipo    ::= DECLENTERO:t    {: RESULT = t; :}
@@ -123,7 +134,7 @@ tipo    ::= DECLENTERO:t    {: RESULT = t; :}
         ;
 	
 iAsig	::= ID:d ASIGNACION expr:e
-                {: RESULT = new InstAsig(d, e); :}
+        {: InstAsig i = new InstAsig(d, e); i.esCorrecta(bloque); RESULT = i; :}
         ;
 
 iSi	::= SI APARENT expr:e CPARENT bloq:l FINSI
@@ -138,67 +149,53 @@ iHacer	::= HACER APARENT expr:e CPARENT bloq:l FINHACER
 		{: RESULT = new InstDo(e, l); :}
         ;
 
-expr	::= expr:e1 oBinEq:o expr2:e2
-		{:  RESULT = new ExprBin(e1, o, e2); :}
-        |   expr2:e
-		{:  RESULT = e; :}
+expr	::= expr:e1 IGUAL expr:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.IGUAL, e2); :}
+		|	expr:e1 DIF expr:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.DESIGUAL, e2); :}
+		|   expr:e1 OLOG expr:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.OR, e2); :}
+		|   expr:e1 YLOG expr:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.AND, e2); :}
+        |   expr:e1 MAYOR expr:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.MAYOR ,e2); :}
+		|   expr:e1 MENOR expr:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.MENOR ,e2); :}
+		|   expr:e1 MAYORIGUAL expr:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.MAYORIGUAL ,e2); :}
+		|   expr:e1 MENORIGUAL expr:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.MENORIGUAL ,e2); :}
+		|   expr:e1 MAS expr:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.SUMA ,e2); :}
+		|   expr:e1 MENOS expr:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.RESTA ,e2); :}
+		|   expr:e1 ENTRE expr:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.DIVR ,e2); :}
+		|   expr:e1 POR expr:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.MULT ,e2); :}
+		|   expr:e1 DIV expr:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.DIVE ,e2); :}
+		|   expr:e1 MOD expr:e2
+		{:  RESULT = new ExprBin(e1, OperadorB.MOD ,e2); :}
+		|	fact:f
+		{:	RESULT = f; :}
         ;
-		
-oBinEq  ::=  IGUAL  {: RESULT = OperadorB.IGUAL; :}
-        |    DIF    {: RESULT = OperadorB.DESIGUAL; :}
-        ;
-
-expr2	::= expr2:e1 oBin:o term:e2
-		{:  RESULT = new ExprBin(e1, o ,e2); :}
-        |   term:t
-		{:  RESULT = t; :}
-        ;
-
-oBin    ::= MAS     {: RESULT = OperadorB.SUMA;  :}
-        |   MENOS   {: RESULT = OperadorB.RESTA; :}
-        |   OLOG    {: RESULT = OperadorB.OR;    :}
-        ;
-
-term	::= term:e1 oBin2:o fact:e2
-		{: RESULT = new ExprBin(e1, o, e2); :}	
-        |   fact:f
-		{: RESULT = f; :}
-        ;
-
-oBin2   ::= ENTRE   {: RESULT = OperadorB.DIVR; :}
-        |   POR     {: RESULT = OperadorB.MULT; :}
-        |   YLOG    {: RESULT = OperadorB.AND; :}
-        |   DIV     {: RESULT = OperadorB.DIVE; :}
-        |   MOD     {: RESULT = OperadorB.MOD; :}
-        ;
-
-fact	::= fact:e1 oBinC:o fact3:e2
-		{: RESULT = new ExprBin(e1, o, e2); :}
-        |   fact3:f
-		{: RESULT = f; :}
-        ;
-
-oBinC  ::=  MAYOR       {: RESULT = OperadorB.MAYOR; :}
-        |   MENOR       {: RESULT = OperadorB.MENOR; :}
-        |   MAYORIGUAL  {: RESULT = OperadorB.MAYORIGUAL; :}
-        |   MENORIGUAL  {: RESULT = OperadorB.MENORIGUAL; :}
-	;
 	
-fact3	::= APARENT expr:e CPARENT 
+fact	::= APARENT expr:e CPARENT 
 		{:  RESULT = e; :}
         |   NUMERO:n 
 		{:  RESULT = new Factor (TipoF.INT, n); :}
-        |   MENOS fact3:f 
+        |   MENOS fact:f 
 		{:  RESULT = new ExprUna (OperadorU.MENOS, f); :}
         |   REAL:n 
 		{:  RESULT = new Factor (TipoF.FLOAT, n); :}
-        |   TECHO APARENT fact3:f CPARENT
+        |   TECHO APARENT fact:f CPARENT
 		{:  RESULT = new ExprUna (OperadorU.TECHO, f); :}
-        |   PISO APARENT fact3:f CPARENT
+        |   PISO APARENT fact:f CPARENT
 		{:  RESULT = new ExprUna (OperadorU.PISO, f); :}
-        |   REDONDEAR APARENT fact3:f CPARENT
+        |   REDONDEAR APARENT fact:f CPARENT
 		{:  RESULT = new ExprUna (OperadorU.REDONDEO, f); :}
-        |   NOLOG fact3:f
+        |   NOLOG fact:f
 		{:  RESULT = new ExprUna (OperadorU.NOT, f); :}
         |   ID:i 
 		{:  Factor e = new Factor (TipoF.ID, i); RESULT = e; :}

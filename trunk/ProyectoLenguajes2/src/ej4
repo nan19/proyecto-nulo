@@ -1,0 +1,22 @@
+comienzo
+entero a := 3;			
+booleano y := (1-2)> (5*-4)+3 | cierto & ((3*1)=2);		
+entero b;
+real b;
+
+si ( a > 0 )	
+	
+	a := a+1;	
+	si ( a > 3 )
+		a:=0;
+	fins;
+sino
+	
+	b := 10;		
+fins;
+entero b;
+
+hacer ( (a<b)&cierto )	
+	b := b - 2;		
+finh;			
+fin

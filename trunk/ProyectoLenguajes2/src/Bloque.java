@@ -98,6 +98,7 @@ enum TipoV {INT,FLOAT,BOOL,TYPE,FUN,PROC,USER}
  */
 abstract class Expresion {
     
+	public String tipo;
     /**
      * Metodo desarrollado por conveniencia. Imprime la representacion en
      * <b>String</b> del objeto.
@@ -114,8 +115,7 @@ abstract class Expresion {
         String error = "Error de tipo en la expresion"+e+" se esperaba ";
         error += tipoEsperado+" y se hallo "+tipoHallado;
         System.out.println(error);
-    }
-    
+    }    
 }
 
 /**
@@ -131,6 +131,8 @@ class ExprBin extends Expresion {
     
     //Sub-Expresion mas a la derecha
     private Expresion ExprDer;
+	
+	public String tipo;
     
     //private Bloque control;
     /**
@@ -153,31 +155,60 @@ class ExprBin extends Expresion {
         switch(this.Op){
             case AND:
             case OR:
+				if (this.ExprDer.getTipo(c).equals("booleano") && this.ExprIzq.getTipo(c).equals("booleano")) {
+					return "booleano";
+				} else {
+					return "error";
+				}
             case IGUAL:
             case DESIGUAL:
+				if (this.ExprDer.getTipo(c).equals("entero") && this.ExprIzq.getTipo(c).equals("entero")) {
+					return "booleano";
+				} else if (this.ExprDer.getTipo(c).equals("real") && this.ExprIzq.getTipo(c).equals("real")) {
+					return "booleano";					
+				} else if (this.ExprDer.getTipo(c).equals("booleano") && this.ExprIzq.getTipo(c).equals("booleano")) {
+					return "booleano";
+				} else {
+					return "error";
+				}
             case MAYOR:
             case MENOR:
             case MAYORIGUAL:
             case MENORIGUAL:
-                return "booleano";
+                if (this.ExprDer.getTipo(c).equals("entero") && this.ExprIzq.getTipo(c).equals("entero")) {
+					return "booleano";
+				} else if (this.ExprDer.getTipo(c).equals("real") && this.ExprIzq.getTipo(c).equals("real")) {
+					return "booleano";					
+				} else {
+					return "error";
+				}
             case MOD:
             case DIVE:
-                return "entero";
+                if (this.ExprDer.getTipo(c).equals("entero") && this.ExprIzq.getTipo(c).equals("entero")) {
+					return "entero";
+				} else {
+					return "error";
+				}
             case DIVR:
-                return "real";
             case SUMA:
             case RESTA:
             case MULT:
-                if(this.ExprDer.getTipo(c).equals("real") || this.ExprIzq.getTipo(c).equals("real")){
+                if(this.ExprDer.getTipo(c).equals("real") && this.ExprIzq.getTipo(c).equals("real")){
                     return "real";
-                }else{
+                } else if(this.ExprDer.getTipo(c).equals("entero") && this.ExprIzq.getTipo(c).equals("entero")){
                     return "entero";
-                }
+                } else if(this.ExprDer.getTipo(c).equals("real") && this.ExprIzq.getTipo(c).equals("entero")){
+                    return "numero";
+                } else if(this.ExprDer.getTipo(c).equals("entero") && this.ExprIzq.getTipo(c).equals("real")){
+                    return "numero";
+                } else {
+					return "error";
+				}
+			default: 
+				return "error";
             
-        }
-        return "error";
-    }
-    
+        }       
+    }    
 
     public boolean esCorrecta(Bloque c) {
         if (this.ExprIzq.esCorrecta(c) && this.ExprDer.esCorrecta(c)){
@@ -294,17 +325,26 @@ class ExprUna extends Expresion {
             case PISO:
             case REDONDEO:
             case TECHO:
-                return "entero";
+                if(this.E.getTipo(c).equals("real")){
+                    return "entero";
+                } else {
+					return "error";
+				}
             case NOT:
-                return "booleano";
+                if(this.E.getTipo(c).equals("booleano")){
+					return "booleano";
+				} else {
+					return "error";
+				}
             case MENOS:
-                if(this.E.getTipo(c).equals("real")||this.E.getTipo(c).equals("entero")){
+                if(this.E.getTipo(c).equals("real") || this.E.getTipo(c).equals("entero")){
                     return this.E.getTipo(c);
                 }else{
                     return "error";
                 }
+			default: 
+				return "error";
         }
-        return "error";
     }
     
 
@@ -417,7 +457,12 @@ class InstDecl extends Inst {
     }
 
     public boolean esCorrecta(Bloque c) {
-        return true;
+        if ( (c.getTS()).isDefinedLocally(this.Var) ) {
+			System.out.println("Variable "+this.Var+" ya esta definida");
+			return false;
+		} else {
+			return true;
+		}
     }
 
     public void setParent(Bloque c) {
@@ -456,8 +501,25 @@ class InstDeclAsig extends Inst {
         return Tipo+" "+Variable+" := "+E+";";
     }
 
-    public boolean esCorrecta(Bloque c) {
-        return E.esCorrecta(c);
+	public boolean esCorrecta(Bloque c) {
+		return noEstaDefinida(c) && tipoCompatible(c);
+	}
+    public boolean noEstaDefinida(Bloque c) {
+		
+        if ( (c.getTS()).isDefinedLocally(this.Variable) ) {
+			System.out.println("Variable "+this.Variable+" ya esta definida");
+			return false;
+		} else {
+			return true;
+		}
+	}
+	public boolean tipoCompatible(Bloque c) {
+		if ((this.Tipo).compareTo(E.getTipo(c)) == 0) {
+			return true;
+		} else {
+			System.out.println("Eror de tipo: Declaracion de "+this.Tipo+", expresion "+E.getTipo(c)+".");
+			return false;
+		}
     }
 
     public void setParent(Bloque c) {
