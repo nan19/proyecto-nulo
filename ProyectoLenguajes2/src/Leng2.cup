@@ -65,9 +65,10 @@ terminal Float REAL;
  * Definicion de los simbolos no terminales de la
  * gramatica con el tipo de su atributo asociado.
  */
-non terminal Bloque s, bloq;
+non terminal inicio;
+non terminal Bloque bloq;
 non terminal Bloque lInst;
-non terminal Inst inst, iDecl, iDeclA, iAsig, iSi, iSino, iHacer;
+non terminal Inst inst, Decl, iDeclA, iAsig, iSi, iSino, iHacer;
 non terminal Expresion expr, fact;
 non terminal Bloque inicB, finB;
 non terminal TokenValue tipo;
@@ -85,9 +86,9 @@ precedence left POR, ENTRE, DIV, MOD;
 /**
  * Gramatica del lenguaje.
  */
-s	::= COMIENZO bloq:b FIN
-        {: b.imprimir(); RESULT = bloque; :}
-	;
+inicio	::= COMIENZO bloq:b FIN
+        {: b.imprimirB(0); :}
+		;
 
 bloq    ::= inicB lInst finB:b {: RESULT = b; :}
         ;
@@ -98,32 +99,34 @@ inicB   ::= {: bloque = new Bloque(bloque); :}
 finB    ::= {: Bloque b = bloque; bloque = bloque.getParent(); RESULT = b; :}
         ;
 
-lInst	::= lInst inst:i PYCOMA {: bloque.agregarInst(i); :}
-        |   inst:i PYCOMA       {: bloque.agregarInst(i); :}
+lInst	::= lInst inst:i 	{: bloque.agregarInst(i); :}
+        |   inst:i 		    {: bloque.agregarInst(i); :}
         ;
 		
-inst	::= iDecl:i     {: RESULT = i; :}
-        |   iDeclA:i    {: RESULT = i; :}
-        |   iAsig:i     {: RESULT = i; :}
-        |   iSi:i       {: RESULT = i; :}
-        |   iSino:i     {: RESULT = i; :}
-        |   iHacer:i    {: RESULT = i; :}
+inst	::= Decl:i		PYCOMA	{: RESULT = i; :}
+		|	iDeclA:i	PYCOMA  {: RESULT = i; :}
+        |   iAsig:i     PYCOMA	{: RESULT = i; :}
+        |   iSi:i       		{: RESULT = i; :}
+        |   iSino:i     		{: RESULT = i; :}
+        |   iHacer:i    		{: RESULT = i; :}
         ;
 
-iDecl	::= tipo:t ID:i
-		{:  InstDecl inst = new InstDecl(t.text, i);
+Decl	::= tipo:t ID:i
+		{:  Decl inst = new Decl(t.text, i);
 			inst.esCorrecta(bloque);
 			Informacion info = new Informacion(i,t.text,null);
 			bloque.getTS().add(i,info);
-            RESULT = inst;
+            RESULT = null;
         :}
         ;
 
 iDeclA	::= tipo:t ID:i ASIGNACION expr:e
-		{:  InstDeclAsig inst = new InstDeclAsig(t.text, i, e);
-			inst.esCorrecta(bloque);
-			Informacion info = new Informacion(i,t.text,null); //null hay q reemplazarlo
+		{:  Decl instd = new Decl(t.text, i);
+			instd.esCorrecta(bloque);
+			Informacion info = new Informacion(i,t.text,null);
             bloque.getTS().add(i,info);
+			InstAsig inst = new InstAsig(i, e);
+			inst.esCorrecta(bloque);			
             RESULT = inst;
         :}
         ;

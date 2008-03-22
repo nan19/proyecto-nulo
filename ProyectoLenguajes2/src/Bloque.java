@@ -51,8 +51,8 @@ class Bloque{
      * Escribe en consola tanto las instrucciones del programa
      * como la tabla de simbolos
      */
-    public void imprimir(){
-        System.out.println(this.toString());
+    public void imprimirB(int i){
+        System.out.println(this.imprimir(i));
     }
     
     /**
@@ -102,20 +102,8 @@ class Bloque{
         this.bloqueExterno = null;
         this.tabla = new TablaSim(null);
         this.inst = new LinkedList<Inst>();
-    }
-    
-    /*
-     * Constructor del envoltorio para la Lista de Instrucciones y para la Tabla
-     * de Simbolos. Agrega una instrucciona al nuevo objeto.
-     * @param i Instruccion a agregar
-     */
-    /*
-    Bloque(Inst i){
-        this();
-        this.agregarInst(i);
-    }
-     */
-    
+    }   
+       
     /**
      * Constructor del envoltorio para la Lista de Instrucciones y para la Tabla
      * de Simbolos. Agrega una instrucciona al nuevo objeto y una declaracion.
@@ -127,29 +115,28 @@ class Bloque{
         this();
         this.agregarInst(i);
         this.agregarID(id,info);
-    }
-
-    
+    }   
     
     public String toString() {
         Inst i;
         String acum = "";
-        for(int j=0; j<this.inst.size(); j++){
+		for(int j=0; j<this.inst.size(); j++){
             i = this.inst.get(j);
-            acum+= i.toString()+"\n";
-            
-        }
-        /*
-	acum += "Tabla:\n";
-	Iterator k = this.tabla.keySet().iterator();
-        Iterator v = this.tabla.values().iterator();
-        int j = 0;
-        while(k.hasNext()){
-            acum += ""+(j+1)+" "+k.next()+ " : "+v.next()+"\n";
-            j++;
-        }
-         */
-        //acum += this.tabla.toString();
+			if (i!=null)
+				acum+= i.imprimir(0)+"\n";            
+        }      
+        return acum;
+    }
+	
+	public String imprimir(int i) {
+        Inst in;
+        String acum = "";
+		for(int j=0; j<this.inst.size(); j++){
+            in = this.inst.get(j);
+			if (in!=null) {				
+				acum+= in.imprimir(i+1);            
+			}
+        }      
         return acum;
     }
 
