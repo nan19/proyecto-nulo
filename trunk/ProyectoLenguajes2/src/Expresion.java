@@ -85,10 +85,7 @@ enum OperadorU {
  * Enumeracion que contiene los posibles tipos de los Factores
  * @see Factor
  */
-enum TipoF {INT,FLOAT,ID,BOOL}
-
-
-enum TipoV {INT,FLOAT,BOOL,TYPE,FUN,PROC,USER}
+enum TipoF {INT,FLOAT,ID,BOOL,PROC,FUNC,ERROR}
 
 /**
  * Clase abstracta que sirve como Superclase para los diversos tipos de 
@@ -105,7 +102,7 @@ abstract class Expresion {
     
     public abstract boolean esCorrecta(Bloque c);
     
-    public abstract String getTipo(Bloque c);
+    public abstract TipoF getTipo(Bloque c);
     
     void showError(String e, String tipoEsperado, String tipoHallado){
         String error = "Error de tipo en la expresion"+e+" se esperaba ";
@@ -158,68 +155,69 @@ class ExprBin extends Expresion {
 		return s;
     }
 
-    public String getTipo(Bloque c) {
+    public TipoF getTipo(Bloque c) {
         switch(this.Op){
             case AND:
             case OR:
-				if (this.ExprDer.getTipo(c).equals("booleano") && this.ExprIzq.getTipo(c).equals("booleano")) {
-					return "booleano";
+				if (this.ExprDer.getTipo(c).equals(TipoF.BOOL) && this.ExprIzq.getTipo(c).equals(TipoF.BOOL)) {
+					return TipoF.BOOL;
 				} else {
-					return "error";
+					return TipoF.ERROR;
 				}
             case IGUAL:
             case DESIGUAL:
-				if (this.ExprDer.getTipo(c).equals("entero") && this.ExprIzq.getTipo(c).equals("entero")) {
-					return "booleano";
-				} else if (this.ExprDer.getTipo(c).equals("real") && this.ExprIzq.getTipo(c).equals("real")) {
-					return "booleano";					
-				} else if (this.ExprDer.getTipo(c).equals("booleano") && this.ExprIzq.getTipo(c).equals("booleano")) {
-					return "booleano";
-				} else {
-					return "error";
-				}
+				if ( (this.ExprDer.getTipo(c).equals(TipoF.INT) && this.ExprIzq.getTipo(c).equals(TipoF.INT)) ||
+					(this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
+					(this.ExprDer.getTipo(c).equals(TipoF.INT) && this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
+					(this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && this.ExprIzq.getTipo(c).equals(TipoF.INT)) ||
+					(this.ExprDer.getTipo(c).equals(TipoF.BOOL) && this.ExprIzq.getTipo(c).equals(TipoF.BOOL)) )
+					return TipoF.BOOL;					
+				else
+					return TipoF.ERROR;				
             case MAYOR:
             case MENOR:
             case MAYORIGUAL:
             case MENORIGUAL:
-                if (this.ExprDer.getTipo(c).equals("entero") && this.ExprIzq.getTipo(c).equals("entero")) {
-					return "booleano";
-				} else if (this.ExprDer.getTipo(c).equals("real") && this.ExprIzq.getTipo(c).equals("real")) {
-					return "booleano";					
-				} else {
-					return "error";
-				}
+                if ( (this.ExprDer.getTipo(c).equals(TipoF.INT) && this.ExprIzq.getTipo(c).equals(TipoF.INT)) ||
+					(this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
+					(this.ExprDer.getTipo(c).equals(TipoF.INT) && this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
+					(this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && this.ExprIzq.getTipo(c).equals(TipoF.INT)) )
+					return TipoF.BOOL;					
+				else
+					return TipoF.ERROR;
             case MOD:
             case DIVE:
-                if (this.ExprDer.getTipo(c).equals("entero") && this.ExprIzq.getTipo(c).equals("entero")) {
-					return "entero";
-				} else {
-					return "error";
-				}
+                if (this.ExprDer.getTipo(c).equals(TipoF.INT) && this.ExprIzq.getTipo(c).equals(TipoF.INT))
+					return TipoF.INT;
+				else
+					return TipoF.ERROR;
             case DIVR:
+				if ( (this.ExprDer.getTipo(c).equals(TipoF.INT) && this.ExprIzq.getTipo(c).equals(TipoF.INT)) ||
+					(this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
+					(this.ExprDer.getTipo(c).equals(TipoF.INT) && this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
+					(this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && this.ExprIzq.getTipo(c).equals(TipoF.INT)) )
+					return TipoF.FLOAT;
+				else 
+					return TipoF.ERROR;
             case SUMA:
             case RESTA:
             case MULT:
-                if(this.ExprDer.getTipo(c).equals("real") && this.ExprIzq.getTipo(c).equals("real")){
-                    return "real";
-                } else if(this.ExprDer.getTipo(c).equals("entero") && this.ExprIzq.getTipo(c).equals("entero")){
-                    return "entero";
-                } else if(this.ExprDer.getTipo(c).equals("real") && this.ExprIzq.getTipo(c).equals("entero")){
-                    return "real";
-                } else if(this.ExprDer.getTipo(c).equals("entero") && this.ExprIzq.getTipo(c).equals("real")){
-                    return "real";
-                } else {
-					return "error";
-				}
+                if (this.ExprDer.getTipo(c).equals(TipoF.INT) && this.ExprIzq.getTipo(c).equals(TipoF.INT))
+					return TipoF.INT;
+				else if ( (this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
+					(this.ExprDer.getTipo(c).equals(TipoF.INT) && this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
+					(this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && this.ExprIzq.getTipo(c).equals(TipoF.INT)) )
+					return TipoF.FLOAT;
+				else 
+					return TipoF.ERROR;
 			default: 
-				return "error";
+				return TipoF.ERROR;
             
         }       
     }    
 
     public boolean esCorrecta(Bloque c) {
-        if ( (this.getTipo(c)).equals("error") ) {
-			System.out.println("Error: tipos no compatibles");
+        if ( (this.getTipo(c)).equals(TipoF.ERROR) ) {			
 			return false;
 		} else {
 			return true;
@@ -258,63 +256,39 @@ class ExprUna extends Expresion {
         return "" + Op + E;
     }
     
-    public boolean esCorrecta(Bloque c) {
-        
-        if (this.E.esCorrecta(c)){
-            String tipoEsperado = "";
-            switch (this.Op){
-                case PISO:
-                case REDONDEO:
-                case TECHO:
-                    tipoEsperado = "real";
-                    break;
-                case NOT:
-                    tipoEsperado = "booleano";
-                    break;
-                case MENOS:
-                    tipoEsperado = "real o entero";
-                    break;
-            }
-            if(tipoEsperado.contains(this.E.getTipo(c))){
-                this.showError(this.toString(),tipoEsperado, this.E.getTipo(c));
-                return false;
-            }else{
-                return true;
-            }
-            
-        }else{
-            return false;
-        }
+    public boolean esCorrecta(Bloque c) {        
+        if (this.getTipo(c).equals(TipoF.ERROR))
+			return false;
+		else
+			return true;
     }
 
-    public String getTipo(Bloque c) {
+    public TipoF getTipo(Bloque c) {
         switch (this.Op){
             case PISO:
             case REDONDEO:
             case TECHO:
-                if(this.E.getTipo(c).equals("real")){
-                    return "entero";
+                if(this.E.getTipo(c).equals(TipoF.FLOAT)){
+                    return TipoF.INT;
                 } else {
-					return "error";
+					return TipoF.ERROR;
 				}
             case NOT:
-                if(this.E.getTipo(c).equals("booleano")){
-					return "booleano";
+                if(this.E.getTipo(c).equals(TipoF.BOOL)){
+					return TipoF.BOOL;
 				} else {
-					return "error";
+					return TipoF.ERROR;
 				}
             case MENOS:
-                if(this.E.getTipo(c).equals("real") || this.E.getTipo(c).equals("entero")){
+                if(this.E.getTipo(c).equals(TipoF.FLOAT) || this.E.getTipo(c).equals(TipoF.INT)){
                     return this.E.getTipo(c);
                 }else{
-                    return "error";
+                    return TipoF.ERROR;
                 }
 			default: 
-				return "error";
+				return TipoF.ERROR;
         }
     }
-    
-
 }
 
 /**
@@ -348,38 +322,18 @@ class Factor extends Expresion {
         return valor.toString()+"\n";
     }
 
-    public boolean esCorrecta(Bloque c) {
-        //return c.estaDefinida((String)this.valor);
+    public boolean esCorrecta(Bloque c) {       
         if(this.tipo == tipo.ID && !c.estaDefinida((String)this.valor)){
-            System.out.println(""+((String)this.valor) + " no esta definida");
+            System.out.println("Variable '"+((String)this.valor) + "' no esta definida.");
+			Informacion info = new Informacion((String)this.valor,TipoF.ID,null,2);
+			c.getTS().add((String)this.valor, info);
             return false;
-        }else{
-            //System.out.println("Valor correcto: "+this.valor.toString());
-            return true;
-            
+        }else{           
+            return true;            
         }
     }
 
-    public String getTipo(Bloque c) {
-        switch (this.tipo){
-            case BOOL:
-                return "booleano";
-            case FLOAT:
-                return "real";
-            case INT:
-                return "entero";
-            case ID:
-                Informacion info = c.getInfo((String)this.valor);
-                if(info != null){
-                    return info.getTipo();
-                }else{
-                    return "error";
-                }
-                
-        }
-        return "error";
+    public TipoF getTipo(Bloque c) {
+		return this.tipo;        
     }
-
-
 }
-

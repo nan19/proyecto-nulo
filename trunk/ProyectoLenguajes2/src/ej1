@@ -1,16 +1,42 @@
+proc hola (e: entero i, entero j; es: entero k, real l; s: booleano b)
+	i:= i+j;
+	b:=cierto;
+finp
+
 comienzo
 entero a;			
 booleano b;		
+real a;
 
-a := a*a + a*a - a/a + a div 2 + a mod 3 = b*b *b > 5;
+a:=f;
+a := 1*2 + 3*4 - 5/6 + 7 div 8 + 9 mod 10;
+c:=1;
+c:=2;
+c:=f;
+[1] entero ar;
+[] entero arr := [1];
+
+booleano ar;
+[1] real ar;
+booleano arr;
+
 
 entero z := 0;
 
 si (a > 0)
     a:= 1;
-    entero b;
-    booleano c;
-    real d;
-fins;
+    entero b;  
+	c:=3;
+	b:=2;
+	hacer (3>2)
+		entero c:=4;
+	finh
+	si (3<2)
+		z:=0;
+	sino
+		z:=1;
+	fins
+fins
+a:=0;
 
 fin

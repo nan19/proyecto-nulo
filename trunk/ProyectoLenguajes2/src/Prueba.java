@@ -42,8 +42,7 @@ public class Prueba {
 	Symbol root = null; 
 
 	try {
-	    root = P.parse(); 
-	    System.out.println ("El programa esta sintacticamente correcto.");
+	    root = P.parse(); 	    
 	} catch (Exception ex){
 	    System.out.println(ex);
 	    System.exit(0);
