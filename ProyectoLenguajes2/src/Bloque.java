@@ -158,6 +158,16 @@ class TablaSim{
     public void addAll(TablaSim ts){
         this.tabla.putAll(ts.tabla);
     }
+	
+	public void addList(Vector v){
+        Iterator i = v.iterator();
+		Informacion info;
+		while (i.hasNext()) {
+			info = (Informacion)i.next();
+			this.add(info.getNombre(), info);
+		}
+			
+    }
     
     public Informacion get(String id){
         if (this.tabla.containsKey(id)){
@@ -190,7 +200,7 @@ class TablaSim{
 
     public String toString() {
         String acum = "Tabla:\n";
-	Iterator k = this.tabla.keySet().iterator();
+		Iterator k = this.tabla.keySet().iterator();
         Iterator v = this.tabla.values().iterator();
         int j = 0;
         while(k.hasNext()){
@@ -214,13 +224,15 @@ class TablaSim{
 
 class Informacion {
     String nombre;
-    String tipo;
+    TipoF tipo;
     Object valor;
+	int status;	//0: normal, 1: DD, 2: ND
     
-    public Informacion(String n, String t, Object v){
+    public Informacion(String n, TipoF t, Object v, int i){
         this.nombre = n;
         this.tipo = t;
         this.valor = v;   
+        this.status = i;   
     }
 
     public String getNombre() {
@@ -228,21 +240,40 @@ class Informacion {
     }
 
     public String getTipo() {
-        return tipo;
+        return "";
     }
 
     public Object getValor() {
         return valor;
     }
 
+	public int getStatus() {
+        return status;
+    }
+	
     public void setValor(Object valor) {
         this.valor = valor;
+    }
+	
+	public void setStatus(int status) {
+        this.status = status;
     }
     
     public String toString(){
         return nombre + " : " + tipo + " : " + valor;
     }
 }
+
+class valorArreglo {
+	int longitud;
+	Vector arreglo;
+	
+	public valorArreglo(int longitud, Vector arreglo) {
+		this.longitud = longitud;
+		this.arreglo = arreglo;
+	}
+}
+
 
 /**
  * Clase que envuelve los valores Booleanos

@@ -69,23 +69,48 @@ class TokenValue {
 %state COMMENTS
 %state COMMENTSLIN
 
-ALPHA=[A-Za-z_]
-DIGIT=[0-9]
-ALPHA_NUMERIC={ALPHA}|{DIGIT}
-IDENT=[a-z]({ALPHA_NUMERIC}|_)*
-NUMBER=({DIGIT})+
+LETRA=[A-Za-z]
+DIGITO=[0-9]
+ALFA_NUMERICO={LETRA}|{DIGITO}
+IDENT=[a-z]({ALFA_NUMERICO}|_)*
+ENTERO=({DIGITO})+
 REAL=[0-9]+[.][0-9]+
-WHITE_SPACE=([\ \n\r\t\f])+
+ESPACIO=([\ \n\r\t\f])+
 
 %%
 
-<YYINITIAL> {WHITE_SPACE} { }
+<YYINITIAL> {ESPACIO} { }
 
-<YYINITIAL> {NUMBER} { 
-  return new Symbol(sym.NUMERO, new Integer(yytext()));
+<YYINITIAL> {ENTERO} { 
+  return new Symbol(sym.ENTERO, new Integer(yytext()));
 }
 <YYINITIAL> {REAL} { 
-  return new Symbol(sym.REAL, new Float (yytext()));
+  return new Symbol(sym.REAL, new Float(yytext()));
+}
+
+<YYINITIAL> "proc" { 
+  return new Symbol(sym.PROC, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+<YYINITIAL> "finp" { 
+  return new Symbol(sym.FINPROC, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+<YYINITIAL> "func" { 
+  return new Symbol(sym.FUNC, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+<YYINITIAL> "finf" { 
+  return new Symbol(sym.FINFUNC, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+<YYINITIAL> ":" { 
+  return new Symbol(sym.DOSPUNTOS, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+<YYINITIAL> "e" { 
+  return new Symbol(sym.ENTRADA, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+<YYINITIAL> "es" { 
+  return new Symbol(sym.ENTSAL, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+<YYINITIAL> "s" { 
+  return new Symbol(sym.SALIDA, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
 
 <YYINITIAL> "comienzo" { 
@@ -104,6 +129,16 @@ WHITE_SPACE=([\ \n\r\t\f])+
 <YYINITIAL> "booleano" { 
   return new Symbol(sym.DECLBOOL, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
+<YYINITIAL> "[" { 
+  return new Symbol(sym.ACORCH, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+<YYINITIAL> "]" { 
+  return new Symbol(sym.CCORCH, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+<YYINITIAL> "," { 
+  return new Symbol(sym.COMA, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+
 
 <YYINITIAL> "cierto" { 
   return new Symbol(sym.CIERTO, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
@@ -141,8 +176,8 @@ WHITE_SPACE=([\ \n\r\t\f])+
 <YYINITIAL> "piso" { 
   return new Symbol(sym.PISO, new TokenValue(yytext(), yyline, yychar, sourceFilename));
 } 
-<YYINITIAL> "redondear" { 
-  return new Symbol(sym.REDONDEAR, new TokenValue(yytext(), yyline, yychar, sourceFilename));
+<YYINITIAL> "redondeo" { 
+  return new Symbol(sym.REDONDEO, new TokenValue(yytext(), yyline, yychar, sourceFilename));
 } 
 <YYINITIAL> "&" { 
   return new Symbol(sym.YLOG, new TokenValue(yytext(), yyline, yychar, sourceFilename));

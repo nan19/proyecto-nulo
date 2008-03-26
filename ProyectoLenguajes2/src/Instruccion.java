@@ -39,7 +39,7 @@ abstract class Inst {
 class Decl extends Inst {
         
     //Nombre del tipo de la variable declarada
-    private String Tipo;
+    private TipoF Tipo;
     
     //Nombre de la variable declarada
     private String Var;
@@ -49,7 +49,7 @@ class Decl extends Inst {
      * @param t Tipo de la variable declarada
      * @param v Nombre de la variable declarada
      */
-    public Decl(String t, String v) {
+    public Decl(TipoF t, String v) {
         this.Tipo = t;
         this.Var = v;
     }
@@ -61,14 +61,18 @@ class Decl extends Inst {
     public String toString() {
         return Tipo +" "+ Var+";";
     }
-
-    public boolean esCorrecta(Bloque c) {
-        if ( (c.getTS()).isDefinedLocally(this.Var) ) {
-			System.out.println("Variable "+this.Var+" ya esta definida");
+	public boolean esCorrecta(Bloque c) { 
+		return true;
+	}
+    public boolean esCorrecta(Bloque c, Informacion info) {  
+		
+		if( (c.getTS()).isDefinedLocally(this.Var) && ((((c.getTS()).get(this.Var)).getStatus()) == 0) ) {
+			System.out.println("Variable '"+this.Var+"' ya esta definida.");			
+			info.setStatus(1);
+			c.getTS().add(this.Var ,info);
 			return false;
-		} else {
+		} else 
 			return true;
-		}
     }
     public void setParent(Bloque c) {
     }
@@ -107,16 +111,35 @@ class InstAsig extends Inst {
     public String toString(){
         return Variable + " := " + E.toString() + ";";
     }
-
-    public boolean esCorrecta(Bloque c) {
+	public boolean esCorrecta(Bloque c) {
+		return false;
+	}
+	
+    public boolean esCorrecta(Bloque c, Informacion info) {
+		boolean ok = true;
         if(!c.estaDefinida(this.Variable)){
-            System.out.println("Variable "+this.Variable+" no ha sido definida");
-            E.esCorrecta(c);
-            return false;
-        }else{
-            return E.esCorrecta(c);
+			System.out.println("Variable '"+this.Variable +"' no ha sido definida.");			
+			c.getTS().add(this.Variable ,info);
+            ok = false;
         }
-        
+		TipoF tipoE = this.E.getTipo(c);
+		TipoF tipoV = c.getTS().get(this.Variable).tipo;
+		if (tipoE.equals(TipoF.ERROR)) {
+			System.out.println("Error de tipo en la expresion ("+this.E+").");
+			ok = false;
+		}
+		if (tipoV.equals(TipoF.FLOAT)) {
+			if ( !(tipoE.equals(TipoF.FLOAT) || tipoE.equals(TipoF.INT)) ) {
+				System.out.println("La Asignacion a la variable "+this.Variable+
+					" no es posible. Los tipos no son compatibles.");
+				ok = false;
+			}
+		} else if (!(tipoV.equals(tipoE))) {
+			System.out.println("La Asignacion a la variable "+this.Variable+
+					" no es posible. Los tipos no son compatibles.");
+			ok = false;
+		}			
+		return ok;        		
     }
 
     public void setParent(Bloque c) {

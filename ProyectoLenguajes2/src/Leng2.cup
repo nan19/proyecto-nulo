@@ -1,4 +1,6 @@
 import java_cup.runtime.*;
+import java.lang.*;
+import java.util.*;
 
 /**
  * Universidad Simon Bolivar
@@ -13,20 +15,33 @@ import java_cup.runtime.*;
  */
 
 action code {:
-    Bloque bloque = new Bloque(null);
+    Bloque bloque = new Bloque(null);	
+	boolean error = false;
 :}
 
 /**
  * Definicion de los tokens generados por el escaner
  * con el tipo asociado.
  */
+ 
+terminal TokenValue FUNC;
+terminal TokenValue FINFUNC;
+terminal TokenValue PROC;
+terminal TokenValue FINPROC;
+terminal TokenValue ENTRADA;
+terminal TokenValue ENTSAL;
+terminal TokenValue SALIDA;
+terminal TokenValue DOSPUNTOS;
 terminal TokenValue COMIENZO;
 terminal TokenValue FIN;
 terminal TokenValue DECLENTERO;
 terminal TokenValue DECLREAL;
 terminal TokenValue DECLBOOL;
 terminal TokenValue APARENT;
-terminal TokenValue CPARENT; 
+terminal TokenValue CPARENT;
+terminal TokenValue ACORCH;
+terminal TokenValue CCORCH;  
+terminal TokenValue COMA;  
 terminal OperadorB MAS;
 terminal OperadorB MENOS;
 terminal OperadorB POR;
@@ -35,7 +50,7 @@ terminal OperadorB DIV;
 terminal OperadorB MOD; 
 terminal OperadorU TECHO;
 terminal OperadorU PISO;
-terminal OperadorU REDONDEAR;
+terminal OperadorU REDONDEO;
 terminal OperadorB YLOG;
 terminal OperadorB OLOG;
 terminal OperadorU NOLOG;
@@ -57,7 +72,7 @@ terminal TokenValue PYCOMA;
 terminal TokenValue CIERTO;
 terminal TokenValue FALSO;
 		
-terminal Integer NUMERO;
+terminal Integer ENTERO;
 terminal String ID;
 terminal Float REAL;
 
@@ -71,7 +86,18 @@ non terminal Bloque lInst;
 non terminal Inst inst, Decl, iDeclA, iAsig, iSi, iSino, iHacer;
 non terminal Expresion expr, fact;
 non terminal Bloque inicB, finB;
-non terminal TokenValue tipo;
+non terminal TipoF tipo;
+non terminal Vector arreglo;
+non terminal elem;
+non terminal SubProgs;
+non terminal SubProg;
+non terminal Proc;
+non terminal Func;
+non terminal Vector Param;
+non terminal Vector ParamE;
+non terminal Vector ParamES;
+non terminal Vector ParamS;
+non terminal Vector LVar;
 
 /**
   * Orden de Precedencia
@@ -86,10 +112,62 @@ precedence left POR, ENTRE, DIV, MOD;
 /**
  * Gramatica del lenguaje.
  */
-inicio	::= COMIENZO bloq:b FIN
-        {: b.imprimirB(0); :}
+inicio	::= SubProgs COMIENZO bloq:b FIN
+        {: 	if (!error)
+				b.imprimirB(0); 
+		:}
 		;
 
+SubProgs::=	SubProgs SubProg
+		|	
+		;
+		
+SubProg	::=	Proc
+		|	Func
+		;
+		
+Proc	::= PROC ID:i APARENT Param:p CPARENT bloq:b FINPROC
+			{:	b.getTS().addList(p);
+				Informacion info = new Informacion(i, TipoF.PROC, b, 0);
+				bloque.getTS().add(i, info);
+			:}
+		;
+
+Func	::= FUNC tipo ID APARENT Param CPARENT bloq FINFUNC
+		;
+		
+Param	::=	ParamE:p1 PYCOMA ParamES:p2 PYCOMA ParamS:p3
+		{: p1.addAll(p2); p1.addAll(p3); RESULT = p1; :}
+		|	ParamE:p1 PYCOMA ParamS:p2		{: p1.addAll(p2); RESULT = p1; :}
+		|	ParamES:p1 PYCOMA ParamS:p2		{: p1.addAll(p2); RESULT = p1; :}
+		|	ParamE:p1 PYCOMA ParamES:p2		{: p1.addAll(p2); RESULT = p1; :}
+		|	ParamE:p						{: RESULT = p; :}
+		|	ParamES:p						{: RESULT = p; :}
+		|	ParamS:p						{: RESULT = p; :}
+		;
+
+ParamE	::=	ENTRADA DOSPUNTOS LVar:l 		{: RESULT = l; :}
+		;
+		
+ParamES	::=	ENTSAL DOSPUNTOS LVar:l 		{: RESULT = l; :}
+		;
+		
+ParamS	::=	SALIDA DOSPUNTOS LVar:l 		{: RESULT = l; :}
+		;
+
+LVar	::=	LVar:l COMA tipo:t ID:i
+		{:	Informacion info = new Informacion(i, t, null, 0);
+			l.add(info);
+			RESULT = l;
+		:}
+		|	tipo:t ID:i				
+		{: 	Vector v = new Vector();
+			Informacion info = new Informacion(i, t, null, 0);
+			v.add(info);
+			RESULT = v;
+		:}
+		;
+		
 bloq    ::= inicB lInst finB:b {: RESULT = b; :}
         ;
 
@@ -112,34 +190,63 @@ inst	::= Decl:i		PYCOMA	{: RESULT = i; :}
         ;
 
 Decl	::= tipo:t ID:i
-		{:  Decl inst = new Decl(t.text, i);
-			inst.esCorrecta(bloque);
-			Informacion info = new Informacion(i,t.text,null);
-			bloque.getTS().add(i,info);
-            RESULT = null;
-        :}
+		{:  Decl inst = new Decl(t, i );	
+			Informacion info = new Informacion(i,t,null, 0);
+			error = inst.esCorrecta(bloque,info);			
+			if (bloque.getTS().get(i ) == null) 
+				bloque.getTS().add(i ,info);
+            RESULT = inst;
+        :}		
+		|	ACORCH ENTERO:e CCORCH tipo:t ID:i				
         ;
 
 iDeclA	::= tipo:t ID:i ASIGNACION expr:e
-		{:  Decl instd = new Decl(t.text, i);
-			instd.esCorrecta(bloque);
-			Informacion info = new Informacion(i,t.text,null);
-            bloque.getTS().add(i,info);
-			InstAsig inst = new InstAsig(i, e);
-			inst.esCorrecta(bloque);			
-            RESULT = inst;
+		{:  Decl inst = new Decl(t, i );	
+			Informacion info = new Informacion(i,t,e,0);
+			error = inst.esCorrecta(bloque, info);
+			if (bloque.getTS().get(i) == null) 
+				bloque.getTS().add(i,info);	
+				
+			InstAsig insta = new InstAsig(i, e); 					
+			error = insta.esCorrecta(bloque, info);				
+			RESULT = insta;
+        
         :}
+		|	ACORCH CCORCH tipo:t ID:i ASIGNACION ACORCH arreglo:a CCORCH		
         ;
 
-tipo    ::= DECLENTERO:t    {: RESULT = t; :}
-        |   DECLREAL:t      {: RESULT = t; :}
-        |   DECLBOOL:t      {: RESULT = t; :}
+tipo    ::= DECLENTERO:t    {: RESULT = TipoF.INT; :}
+        |   DECLREAL:t      {: RESULT = TipoF.FLOAT; :}
+        |   DECLBOOL:t      {: RESULT = TipoF.BOOL; :}
         ;
-	
+		
 iAsig	::= ID:d ASIGNACION expr:e
-        {: InstAsig i = new InstAsig(d, e); i.esCorrecta(bloque); RESULT = i; :}
+        {: 	InstAsig i = new InstAsig(d , e); 
+			Informacion info = new Informacion(d,TipoF.INT,e,0);			
+			error = i.esCorrecta(bloque, info);				
+			RESULT = i; 
+		:}
+		|	ID:d ASIGNACION ACORCH arreglo:a CCORCH        
         ;
 
+arreglo	::= arreglo:a COMA elem:e
+		{:	a.add(e);
+			RESULT = a;
+		:}
+		|	elem:e
+		{: 	Vector v = new Vector();
+			v.add(e);
+			RESULT = v;
+		:}
+		;
+		
+elem	::=	ENTERO:e		{: RESULT = new Integer(e); :}
+		|	REAL:e			{: RESULT = new Float(e); :}
+		|	CIERTO:e		{: RESULT = new Boolean(true); :}
+		|	FALSO:e			{: RESULT = new Boolean(false); :}
+		|	ID:e			{: RESULT = e; :}
+		;
+		
 iSi	::= SI APARENT expr:e CPARENT bloq:l FINSI
 		{: RESULT = new InstIf(e, l ); :}
         ;
@@ -186,7 +293,7 @@ expr	::= expr:e1 IGUAL expr:e2
 	
 fact	::= APARENT expr:e CPARENT 
 		{:  RESULT = e; :}
-        |   NUMERO:n 
+        |   ENTERO:n 
 		{:  RESULT = new Factor (TipoF.INT, n); :}
         |   MENOS fact:f 
 		{:  RESULT = new ExprUna (OperadorU.MENOS, f); :}
@@ -196,12 +303,12 @@ fact	::= APARENT expr:e CPARENT
 		{:  RESULT = new ExprUna (OperadorU.TECHO, f); :}
         |   PISO APARENT fact:f CPARENT
 		{:  RESULT = new ExprUna (OperadorU.PISO, f); :}
-        |   REDONDEAR APARENT fact:f CPARENT
+        |   REDONDEO APARENT fact:f CPARENT
 		{:  RESULT = new ExprUna (OperadorU.REDONDEO, f); :}
         |   NOLOG fact:f
 		{:  RESULT = new ExprUna (OperadorU.NOT, f); :}
         |   ID:i 
-		{:  Factor e = new Factor (TipoF.ID, i); RESULT = e; :}
+		{:  Factor e = new Factor (TipoF.ID, i ); RESULT = e; :}
         |   CIERTO:c 
 		{: RESULT= new Factor(TipoF.BOOL, new Booleano(true)); :}
         |   FALSO:c 
