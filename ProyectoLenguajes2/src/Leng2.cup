@@ -73,7 +73,7 @@ terminal TokenValue CIERTO;
 terminal TokenValue FALSO;
 		
 terminal Integer ENTERO;
-terminal String ID;
+terminal TokenValue ID;
 terminal Float REAL;
 
 /**
@@ -98,6 +98,8 @@ non terminal Vector ParamE;
 non terminal Vector ParamES;
 non terminal Vector ParamS;
 non terminal Vector LVar;
+non terminal iniBProc;
+non terminal finBProc;
 
 /**
   * Orden de Precedencia
@@ -125,46 +127,51 @@ SubProgs::=	SubProgs SubProg
 SubProg	::=	Proc
 		|	Func
 		;
-		
-Proc	::= PROC ID:i APARENT Param:p CPARENT bloq:b FINPROC
-			{:	b.getTS().addList(p);
-				Informacion info = new Informacion(i, TipoF.PROC, b, 0);
-				bloque.getTS().add(i, info);
+				
+Proc	::= PROC ID:i iniBProc APARENT Param CPARENT lInst:l finBProc FINPROC
+			{:	Informacion info = new Informacion(i.text, TipoF.PROC, l, 0);
+				bloque.getTS().add(i.text, info);
+			:}
+		;
+				
+Func	::= FUNC tipo ID:i iniBProc APARENT LVar CPARENT lInst:l finBProc FINFUNC
+			{:	Informacion info = new Informacion(i.text, TipoF.PROC, l, 0);
+				bloque.getTS().add(i.text, info);
 			:}
 		;
 
-Func	::= FUNC tipo ID APARENT Param CPARENT bloq FINFUNC
+iniBProc::=	{: 	bloque = new Bloque(bloque); :}
 		;
 		
-Param	::=	ParamE:p1 PYCOMA ParamES:p2 PYCOMA ParamS:p3
-		{: p1.addAll(p2); p1.addAll(p3); RESULT = p1; :}
-		|	ParamE:p1 PYCOMA ParamS:p2		{: p1.addAll(p2); RESULT = p1; :}
-		|	ParamES:p1 PYCOMA ParamS:p2		{: p1.addAll(p2); RESULT = p1; :}
-		|	ParamE:p1 PYCOMA ParamES:p2		{: p1.addAll(p2); RESULT = p1; :}
-		|	ParamE:p						{: RESULT = p; :}
-		|	ParamES:p						{: RESULT = p; :}
-		|	ParamS:p						{: RESULT = p; :}
+finBProc::= {: Bloque b = bloque; bloque = bloque.getParent(); :}
+        ;
+		
+Param	::=	ParamE PYCOMA ParamES PYCOMA ParamS
+		|	ParamE:p1 PYCOMA ParamS
+		|	ParamES:p1 PYCOMA ParamS
+		|	ParamE:p1 PYCOMA ParamES
+		|	ParamE
+		|	ParamES
+		|	ParamS
 		;
 
-ParamE	::=	ENTRADA DOSPUNTOS LVar:l 		{: RESULT = l; :}
+ParamE	::=	ENTRADA DOSPUNTOS LVar
 		;
 		
-ParamES	::=	ENTSAL DOSPUNTOS LVar:l 		{: RESULT = l; :}
+ParamES	::=	ENTSAL DOSPUNTOS LVar
 		;
 		
-ParamS	::=	SALIDA DOSPUNTOS LVar:l 		{: RESULT = l; :}
+ParamS	::=	SALIDA DOSPUNTOS LVar
 		;
 
-LVar	::=	LVar:l COMA tipo:t ID:i
-		{:	Informacion info = new Informacion(i, t, null, 0);
-			l.add(info);
-			RESULT = l;
+LVar	::=	LVar COMA tipo:t ID:i
+		{:	Informacion info = new Informacion(i.text, t, null, 0);	//especificar tipo: E, ES, S
+			bloque.getTS().add(i.text, info);
 		:}
-		|	tipo:t ID:i				
-		{: 	Vector v = new Vector();
-			Informacion info = new Informacion(i, t, null, 0);
-			v.add(info);
-			RESULT = v;
+		|	tipo:t ID:i
+		{: 	
+			Informacion info = new Informacion(i.text, t, null, 0);
+			bloque.getTS().add(i.text, info);
 		:}
 		;
 		
@@ -190,25 +197,24 @@ inst	::= Decl:i		PYCOMA	{: RESULT = i; :}
         ;
 
 Decl	::= tipo:t ID:i
-		{:  Decl inst = new Decl(t, i );	
-			Informacion info = new Informacion(i,t,null, 0);
-			error = inst.esCorrecta(bloque,info);			
-			if (bloque.getTS().get(i ) == null) 
-				bloque.getTS().add(i ,info);
+		{:  Decl inst = new Decl(t, i.text );	
+			Informacion info = new Informacion(i.text,t,null, 0);
+			error = inst.esCorrecta(bloque,info, i.lineBegin+1);			
+			if (bloque.getTS().getLocally(i.text) == null) 
+				bloque.getTS().add(i.text ,info);
             RESULT = inst;
         :}		
 		|	ACORCH ENTERO:e CCORCH tipo:t ID:i				
         ;
 
 iDeclA	::= tipo:t ID:i ASIGNACION expr:e
-		{:  Decl inst = new Decl(t, i );	
-			Informacion info = new Informacion(i,t,e,0);
-			error = inst.esCorrecta(bloque, info);
-			if (bloque.getTS().get(i) == null) 
-				bloque.getTS().add(i,info);	
-				
-			InstAsig insta = new InstAsig(i, e); 					
-			error = insta.esCorrecta(bloque, info);				
+		{:  Decl inst = new Decl(t, i.text );	
+			Informacion info = new Informacion(i.text,t,e,0);
+			error = inst.esCorrecta(bloque, info, i.lineBegin+1);
+			if (bloque.getTS().get(i.text) == null) 
+				bloque.getTS().add(i.text,info);				
+			InstAsig insta = new InstAsig(i.text, e); 					
+			error = insta.esCorrecta(bloque, info, i.lineBegin+1);				
 			RESULT = insta;
         
         :}
@@ -221,9 +227,9 @@ tipo    ::= DECLENTERO:t    {: RESULT = TipoF.INT; :}
         ;
 		
 iAsig	::= ID:d ASIGNACION expr:e
-        {: 	InstAsig i = new InstAsig(d , e); 
-			Informacion info = new Informacion(d,TipoF.INT,e,0);			
-			error = i.esCorrecta(bloque, info);				
+        {: 	InstAsig i = new InstAsig(d.text , e); 
+			Informacion info = new Informacion(d.text,TipoF.INT,e,0);			
+			error = i.esCorrecta(bloque, info, d.lineBegin+1);
 			RESULT = i; 
 		:}
 		|	ID:d ASIGNACION ACORCH arreglo:a CCORCH        

@@ -91,8 +91,7 @@ class Bloque{
         TablaSim tsp = (bExt != null ) ? bExt.tabla : null;
         this.tabla = new TablaSim(tsp);
         this.inst = new LinkedList<Inst>();
-    }
-    
+    }	
     
     /**
      * Constructor del envoltorio para la Lista de Instrucciones y para la Tabla
@@ -165,8 +164,7 @@ class TablaSim{
 		while (i.hasNext()) {
 			info = (Informacion)i.next();
 			this.add(info.getNombre(), info);
-		}
-			
+		}			
     }
     
     public Informacion get(String id){
@@ -176,8 +174,15 @@ class TablaSim{
             return this.parent.get(id);
         }else{
             return null;
+        }        
+    }
+	
+	public Informacion getLocally(String id){
+        if (this.tabla.containsKey(id)){
+            return this.tabla.get(id);        
+        } else {
+            return null;
         }
-        
     }
     
     public boolean isDefinedLocally(String id){
@@ -239,8 +244,8 @@ class Informacion {
         return nombre;
     }
 
-    public String getTipo() {
-        return "";
+    public TipoF getTipo() {
+        return tipo;
     }
 
     public Object getValor() {
@@ -250,6 +255,10 @@ class Informacion {
 	public int getStatus() {
         return status;
     }
+	
+	public void setTipo(TipoF tipo) {
+		this.tipo = tipo;
+	}
 	
     public void setValor(Object valor) {
         this.valor = valor;
