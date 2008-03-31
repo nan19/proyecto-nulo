@@ -27,7 +27,7 @@ abstract class Inst {
      */
     public abstract String imprimir(int i);
     
-    public abstract boolean esCorrecta(Bloque c);
+    public abstract boolean esCorrecta(Bloque c, Informacion info, int linea);
     
     public abstract void setParent(Bloque c);
 
@@ -61,13 +61,11 @@ class Decl extends Inst {
     public String toString() {
         return Tipo +" "+ Var+";";
     }
-	public boolean esCorrecta(Bloque c) { 
-		return true;
-	}
-    public boolean esCorrecta(Bloque c, Informacion info) {  
+
+    public boolean esCorrecta(Bloque c, Informacion info, int linea) {  
 		
-		if( (c.getTS()).isDefinedLocally(this.Var) && ((((c.getTS()).get(this.Var)).getStatus()) == 0) ) {
-			System.out.println("Variable '"+this.Var+"' ya esta definida.");			
+		if( (c.getTS()).isDefinedLocally(this.Var) && ((((c.getTS()).getLocally(this.Var)).getStatus()) == 0) ) {
+			System.out.println("ERROR (linea "+linea+") Variable '"+this.Var+"' ya esta definida.");			
 			info.setStatus(1);
 			c.getTS().add(this.Var ,info);
 			return false;
@@ -110,42 +108,43 @@ class InstAsig extends Inst {
     }
     public String toString(){
         return Variable + " := " + E.toString() + ";";
-    }
-	public boolean esCorrecta(Bloque c) {
-		return false;
-	}
+    }	
 	
-    public boolean esCorrecta(Bloque c, Informacion info) {
+    public boolean esCorrecta(Bloque c, Informacion info, int linea) {
 		boolean ok = true;
+		//Chequeo de variable definida.
         if(!c.estaDefinida(this.Variable)){
-			System.out.println("Variable '"+this.Variable +"' no ha sido definida.");			
+			System.out.println("ERROR (linea "+linea+") Variable '"+this.Variable +"' no ha sido definida.");
+			info.setTipo(TipoF.NODEF);
 			c.getTS().add(this.Variable ,info);
             ok = false;
         }
 		TipoF tipoE = this.E.getTipo(c);
 		TipoF tipoV = c.getTS().get(this.Variable).tipo;
+		//chequeo de la expresion.
 		if (tipoE.equals(TipoF.ERROR)) {
-			System.out.println("Error de tipo en la expresion ("+this.E+").");
+			System.out.println("ERROR (linea "+linea+") Error de tipo en la expresion ("+this.E+").");
 			ok = false;
 		}
-		if (tipoV.equals(TipoF.FLOAT)) {
-			if ( !(tipoE.equals(TipoF.FLOAT) || tipoE.equals(TipoF.INT)) ) {
-				System.out.println("La Asignacion a la variable "+this.Variable+
-					" no es posible. Los tipos no son compatibles.");
+		//chequeo de compatibilidad entre la expresion y la variable
+		if (!tipoV.equals(TipoF.NODEF)) {
+			if (tipoV.equals(TipoF.FLOAT)) {
+				if ( !(tipoE.equals(TipoF.FLOAT) || tipoE.equals(TipoF.INT)) ) {
+					System.out.println("ERROR (linea "+linea+") La Asignacion a la variable '"+this.Variable+
+						"' no es posible. Los tipos no son compatibles.");
+					ok = false;
+				}
+			} else if (!(tipoV.equals(tipoE))) {
+				System.out.println("ERROR (linea "+linea+") La Asignacion a la variable '"+this.Variable+
+						"' no es posible. Los tipos no son compatibles.");
 				ok = false;
 			}
-		} else if (!(tipoV.equals(tipoE))) {
-			System.out.println("La Asignacion a la variable "+this.Variable+
-					" no es posible. Los tipos no son compatibles.");
-			ok = false;
-		}			
+		}
 		return ok;        		
     }
 
     public void setParent(Bloque c) {
     }
-
-
 }
 
 /**
@@ -183,7 +182,7 @@ class InstIf extends Inst {
         return "si "+Condicion.toString()+"\n"+inst+"fins;";
     }
 
-    public boolean esCorrecta(Bloque c) {
+    public boolean esCorrecta(Bloque c, Informacion info, int linea) {
         return this.Condicion.esCorrecta(c);
     }
 
@@ -232,8 +231,6 @@ class InstIfElse extends InstIf {
         super.setParent(c);
         this.instElse.setParent(c);
     }
-
-
 }
 
 /**
@@ -271,7 +268,7 @@ class InstDo extends Inst {
         return "Hacer " + Condicion +"\n"+inst+"finh;";
     }
 
-    public boolean esCorrecta(Bloque c) {
+    public boolean esCorrecta(Bloque c, Informacion info, int linea) {
         return this.Condicion.esCorrecta(c);
     }
 

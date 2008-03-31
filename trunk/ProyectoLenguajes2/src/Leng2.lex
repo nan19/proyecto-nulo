@@ -246,7 +246,7 @@ ESPACIO=([\ \n\r\t\f])+
   yybegin(YYINITIAL);
 }
 <YYINITIAL> {IDENT} { 
-  return new Symbol(sym.ID, new String(yytext())); 
+  return new Symbol(sym.ID,new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
 
 <YYINITIAL> . {

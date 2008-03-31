@@ -1,15 +1,23 @@
 proc hola (e: entero i, entero j; es: entero k, real l; s: booleano b)
 	i:= i+j;
-	b:=cierto;
+	j:=3;
+	k:=1;	
 finp
+
+func entero chao (entero i, entero j)
+	i:=0;
+	k:=1;
+finf
 
 comienzo
 entero a;			
-booleano b;		
-real a;
+booleano b;	
+real z;
+
+z:=1;	
 
 a:=f;
-a := 1*2 + 3*4 - 5/6 + 7 div 8 + 9 mod 10;
+a := 1*2 + 3*4 - 5 div 6 + 7 div 8 + 9 mod 10;
 c:=1;
 c:=2;
 c:=f;
@@ -25,9 +33,8 @@ entero z := 0;
 
 si (a > 0)
     a:= 1;
-    entero b;  
+    entero b;
 	c:=3;
-	b:=2;
 	hacer (3>2)
 		entero c:=4;
 	finh
