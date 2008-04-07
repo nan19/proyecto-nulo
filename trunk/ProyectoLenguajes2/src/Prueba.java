@@ -29,20 +29,28 @@ public class Prueba {
 	}
 
 	//Abre el archivo de Entrada
-	FileReader archivo = null;
+	FileReader archivo0 = null;
+        FileReader archivo1 = null;
 	try {
-	    archivo = new FileReader(args[0]);
+	    archivo0 = new FileReader(args[0]);
+            archivo1 = new FileReader(args[0]);
 	} catch (FileNotFoundException ex) {
 	    System.err.println("Archivo: " + args[0] + " no encontrado.");
 	    System.exit(-1);
 	}
+        
+        preparser pre = new preparser(new Yylex(archivo0));
+        
+	parser P = new parser(new Yylex(archivo1));
+        
 
-	parser P = new parser(new Yylex(archivo));
-
-	Symbol root = null; 
+	Symbol root = null;
+        Symbol r = null;
 
 	try {
+            r = pre.parse();
 	    root = P.parse(); 	    
+            
 	} catch (Exception ex){
 	    System.out.println(ex);
 	    System.exit(0);
