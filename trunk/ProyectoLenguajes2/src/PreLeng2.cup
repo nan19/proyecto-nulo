@@ -1,0 +1,263 @@
+import java_cup.runtime.*;
+import java.lang.*;
+import java.util.*;
+import java.io.*;
+
+/**
+ * Universidad Simon Bolivar
+ * Lenguajes de Programacion II
+ * 
+ * Maria Sol Ferrer 04-36975
+ * Jamil Navarro 04-37334
+ *
+ * Proyecto: Procesador de lenguaje imperativo.
+ * Leng2.cup: Analizador sintactico del lenguaje
+ * 
+ */
+
+action code {:
+    TipoES es;
+    Bloque bloque;
+    boolean error = false;
+:}
+
+/**
+ * Definicion de los tokens generados por el escaner
+ * con el tipo asociado.
+ */
+terminal TokenValue IDENT;
+terminal TokenValue FUNC;
+terminal TokenValue FINFUNC;
+terminal TokenValue PROC;
+terminal TokenValue FINPROC;
+terminal TokenValue ENTRADA;
+terminal TokenValue ENTSAL;
+terminal TokenValue SALIDA;
+terminal TokenValue DOSPUNTOS;
+terminal TokenValue COMIENZO;
+terminal TokenValue FIN;
+terminal TokenValue DECLENTERO;
+terminal TokenValue DECLREAL;
+terminal TokenValue DECLBOOL;
+terminal TokenValue APARENT;
+terminal TokenValue CPARENT;
+terminal TokenValue ACORCH;
+terminal TokenValue CCORCH;  
+terminal TokenValue COMA;  
+terminal OperadorB MAS;
+terminal OperadorB MENOS;
+terminal OperadorB POR;
+terminal OperadorB ENTRE;
+terminal OperadorB DIV;
+terminal OperadorB MOD; 
+terminal OperadorU TECHO;
+terminal OperadorU PISO;
+terminal OperadorU REDONDEO;
+terminal OperadorB YLOG;
+terminal OperadorB OLOG;
+terminal OperadorU NOLOG;
+terminal OperadorB IGUAL;
+terminal OperadorB DIF;
+terminal OperadorB MAYOR;
+terminal OperadorB MENOR;
+terminal OperadorB MAYORIGUAL;
+terminal OperadorB MENORIGUAL;
+terminal TokenValue ASIGNACION; 
+terminal TokenValue SI;
+terminal TokenValue SINO;
+terminal TokenValue FINSI;
+terminal TokenValue HACER;
+terminal TokenValue FINHACER;
+terminal TokenValue ESCRIBIR;
+terminal TokenValue LEER;
+terminal TokenValue PYCOMA;
+terminal TokenValue CIERTO;
+terminal TokenValue FALSO;
+
+		
+terminal Integer ENTERO;
+terminal TokenValue ID;
+terminal Float REAL;
+
+/**
+ * Definicion de los simbolos no terminales de la
+ * gramatica con el tipo de su atributo asociado.
+ */
+non terminal inicio;
+non terminal TipoB tipo;
+non terminal SubProgs;
+non terminal SubProg;
+non terminal Proc;
+non terminal Func;
+non terminal List Param;
+non terminal List ParamE;
+non terminal List ParamES;
+non terminal List ParamS;
+non terminal List LVar;
+non terminal inicializar;
+non terminal loquesea;
+non terminal todo;
+
+/**
+  * Orden de Precedencia
+  */
+precedence left IGUAL, DIF;
+precedence left OLOG;
+precedence left YLOG;
+precedence left MAYOR, MENOR, MAYORIGUAL, MENORIGUAL;
+precedence left MAS, MENOS;
+precedence left POR, ENTRE, DIV, MOD;
+
+/**
+ * Gramatica del lenguaje.
+ */
+inicio	::= inicializar SubProgs loquesea
+        ;
+
+inicializar ::= {: Misc.acumulador = new Bloque(null); bloque = Misc.acumulador; :}
+            ;
+
+SubProgs::= SubProgs Proc
+        |   SubProgs Func
+        |	
+        ;
+				
+Proc	::= PROC ID:i APARENT Param:p CPARENT loquesea FINPROC
+                {:	
+                        InfoSub is = new InfoSub(null, p);
+                        Informacion info = new Informacion(i.text, TipoF.PROC, is, 0);
+                        bloque.getTS().add(i.text, info);
+                :}
+		;
+				
+Func	::= FUNC tipo ID:i APARENT LVar:v CPARENT loquesea FINFUNC
+			{:	InfoSub is = new InfoSub(null, v);
+                                Informacion info = new Informacion(i.text, TipoF.PROC, is, 0);
+				bloque.getTS().add(i.text, info);
+			:}
+		;
+		
+Param	::=	ParamE:p1 PYCOMA ParamES:p2 PYCOMA ParamS:p3    
+                    {:
+                        p1.addAll(p2);
+                        p1.addAll(p3);
+                        RESULT = p1; 
+                    :}
+		|	ParamE:p1 PYCOMA ParamS:p2
+                    {:
+                        p1.addAll(p2);
+                        RESULT = p1; 
+                    :}
+		|	ParamES:p1 PYCOMA ParamS:p2
+                    {:
+                        p1.addAll(p2);
+                        RESULT = p1; 
+                    :}
+		|	ParamE:p1 PYCOMA ParamES:p2
+                    {:
+                        p1.addAll(p2);
+                        RESULT = p1; 
+                    :}
+		|	ParamE:p    {: RESULT = p; :}
+		|	ParamES:p   {: RESULT = p; :}
+		|	ParamS:p    {: RESULT = p; :}
+		;
+
+ParamE	::=	ENTRADA DOSPUNTOS LVar:l
+                {: 
+                    List<TParam> lp = new LinkedList<TParam>();
+                    for(int i=0; i< l.size(); i++){
+                        lp.add(new TParam((Tipo)l.get(i),TipoES.IN));
+                    }
+                    RESULT = lp; 
+                :}
+		;
+		
+ParamES	::=	ENTSAL DOSPUNTOS LVar:l
+                {: 
+                    List<TParam> lp = new LinkedList<TParam>();
+                    for(int i=0; i< l.size(); i++){
+                        lp.add(new TParam((Tipo)l.get(i),TipoES.IN_OUT));
+                    }
+                    RESULT = lp; 
+                :}
+		;
+		
+ParamS	::=	SALIDA DOSPUNTOS LVar:l
+                {: 
+                    List<TParam> lp = new LinkedList<TParam>();
+                    for(int i=0; i< l.size(); i++){
+                        lp.add(new TParam((Tipo)l.get(i),TipoES.OUT));
+                    }
+                    RESULT = lp; 
+                :}
+		;
+
+LVar	::=	LVar:l COMA tipo:t ID:i
+                    {:	
+                            l.add(new TBasico(t));
+                            RESULT = l;
+                    :}
+		|	tipo:t ID:i
+                    {: 	
+                            List l = new LinkedList();
+                            l.add(new TBasico(t));
+                            RESULT = l; 
+                    :}
+		;
+
+loquesea ::= loquesea todo
+            |   todo
+            ;
+
+todo ::=    DOSPUNTOS
+            |   APARENT
+            |   CPARENT
+            |   ACORCH
+            |   CCORCH
+            |   COMA 
+            |   MAS
+            |   MENOS
+            |   POR
+            |   ENTRE
+            |   YLOG
+            |   OLOG
+            |   NOLOG
+            |   IGUAL
+            |   DIF
+            |   MAYOR
+            |   MENOR
+            |   MAYORIGUAL
+            |   MENORIGUAL
+            |   ASIGNACION
+            |   ENTERO
+            |   REAL
+            |   CIERTO
+            |   FALSO
+            |   ID
+            |   COMIENZO
+            |   FIN
+            |   DECLENTERO
+            |   DECLREAL
+            |   DECLBOOL
+            |   SI
+            |   SINO
+            |   FINSI
+            |   HACER
+            |   FINHACER
+            |   ESCRIBIR
+            |   LEER
+            |   PISO
+            |   TECHO
+            |   REDONDEO
+            |   PYCOMA
+            |   IDENT
+            |   DIV
+            |   MOD
+            ;
+
+tipo    ::= DECLENTERO:t    {: RESULT = TipoB.ENTERO; :}
+        |   DECLREAL:t      {: RESULT = TipoB.REAL; :}
+        |   DECLBOOL:t      {: RESULT = TipoB.BOOLEANO; :}
+        ;
+		
