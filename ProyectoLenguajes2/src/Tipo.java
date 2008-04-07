@@ -55,3 +55,18 @@ class TParam extends Tipo{
         this.es = e;
     }
 }
+
+class InfoSub{
+    Bloque bloque;
+    java.util.List param;
+    
+    public InfoSub(Bloque b, java.util.List p){
+        this.bloque = b;
+        this.param = p;
+    }
+    
+    public void setBloque(Bloque b){
+        this.bloque = b;
+    }
+}
+
