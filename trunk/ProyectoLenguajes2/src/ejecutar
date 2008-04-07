@@ -1,5 +1,6 @@
 #! /bin/bash
 
 jlex *.lex
-cup -expect 6 *.cup
+cup Leng2.cup
+cup -parser preparser -symbols presymbol PreLeng2.cup
 #javac *.java
