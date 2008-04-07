@@ -338,7 +338,7 @@ class Arreglo extends Expresion {
       
     //Tipo del arreglo
     private TipoF tipo;	
-	//Tamaño del arreglo
+	//Tamanno del arreglo
 	private int tam;
 	//Lista de Elementos
     private LinkedList<Expresion> listaElem;
