@@ -5,6 +5,7 @@ import java.util.*;
 /**
  * Universidad Simon Bolivar
  * Lenguajes de Programacion II
+ * Entrega final 7/04/2008
  * 
  * Maria Sol Ferrer 04-36975
  * Jamil Navarro 04-37334
@@ -13,17 +14,15 @@ import java.util.*;
  * Leng2.cup: Analizador sintactico del lenguaje
  * 
  */
-
 action code {:
-    Bloque bloque = new Bloque(null);	
-	boolean error = false;
+    Bloque bloque = new Bloque(null, true);	
+	boolean noError = true;
 :}
 
 /**
  * Definicion de los tokens generados por el escaner
  * con el tipo asociado.
- */
- 
+ */ 
 terminal TokenValue FUNC;
 terminal TokenValue FINFUNC;
 terminal TokenValue PROC;
@@ -37,11 +36,15 @@ terminal TokenValue FIN;
 terminal TokenValue DECLENTERO;
 terminal TokenValue DECLREAL;
 terminal TokenValue DECLBOOL;
+terminal TokenValue TIPODATO;
+terminal TokenValue CASO;
+terminal TokenValue ES;
 terminal TokenValue APARENT;
 terminal TokenValue CPARENT;
 terminal TokenValue ACORCH;
 terminal TokenValue CCORCH;  
 terminal TokenValue COMA;  
+terminal TokenValue PUNTO;  
 terminal OperadorB MAS;
 terminal OperadorB MENOS;
 terminal OperadorB POR;
@@ -66,8 +69,6 @@ terminal TokenValue SINO;
 terminal TokenValue FINSI;
 terminal TokenValue HACER;
 terminal TokenValue FINHACER;
-terminal TokenValue ESCRIBIR;
-terminal TokenValue LEER;
 terminal TokenValue PYCOMA;
 terminal TokenValue CIERTO;
 terminal TokenValue FALSO;
@@ -83,26 +84,28 @@ terminal Float REAL;
 non terminal inicio;
 non terminal Bloque bloq;
 non terminal Bloque lInst;
-non terminal Inst inst, Decl, iDeclA, iAsig, iSi, iSino, iHacer;
+non terminal Inst inst, Decl, SubProg, iDeclA, iAsig, iSi, iSino, 
+				iHacer, llamProc;
 non terminal Expresion expr, fact;
 non terminal Bloque inicB, finB;
-non terminal TipoF tipo;
-non terminal Vector arreglo;
-non terminal elem;
-non terminal SubProgs;
-non terminal SubProg;
+non terminal TipoF tipo, tipoG;
+non terminal LinkedList arreglo, Lelem, LParam;
 non terminal Proc;
 non terminal Func;
-non terminal Vector Param;
-non terminal Vector ParamE;
-non terminal Vector ParamES;
-non terminal Vector ParamS;
-non terminal Vector LVar;
+non terminal Param;
+non terminal ParamE;
+non terminal ParamES;
+non terminal ParamS;
+non terminal LVar;
 non terminal iniBProc;
-non terminal finBProc;
+non terminal LCorchN;
+non terminal LCorch;
+non terminal TokenValue Var;
+non terminal discr, lDiscr;
 
 /**
   * Orden de Precedencia
+  * Los operadores mas abajo tienen mayor precedencia
   */
 precedence left IGUAL, DIF;
 precedence left OLOG;
@@ -110,42 +113,134 @@ precedence left YLOG;
 precedence left MAYOR, MENOR, MAYORIGUAL, MENORIGUAL;
 precedence left MAS, MENOS;
 precedence left POR, ENTRE, DIV, MOD;
+precedence left PUNTO;
 
 /**
  * Gramatica del lenguaje.
  */
-inicio	::= SubProgs COMIENZO bloq:b FIN
-        {: 	if (!error)
+inicio	::= COMIENZO bloq:b FIN
+        {: 	if (noError)
 				b.imprimirB(0); 
 		:}
 		;
-
-SubProgs::=	SubProgs SubProg
-		|	
-		;
-		
-SubProg	::=	Proc
-		|	Func
-		;
-				
-Proc	::= PROC ID:i iniBProc APARENT Param CPARENT lInst:l finBProc FINPROC
-			{:	Informacion info = new Informacion(i.text, TipoF.PROC, l, 0);
-				bloque.getTS().add(i.text, info);
-			:}
-		;
-				
-Func	::= FUNC tipo ID:i iniBProc APARENT LVar CPARENT lInst:l finBProc FINFUNC
-			{:	Informacion info = new Informacion(i.text, TipoF.PROC, l, 0);
-				bloque.getTS().add(i.text, info);
-			:}
-		;
-
-iniBProc::=	{: 	bloque = new Bloque(bloque); :}
-		;
-		
-finBProc::= {: Bloque b = bloque; bloque = bloque.getParent(); :}
+/** Definicion de un Bloque */
+bloq    ::= inicB lInst finB:b {: RESULT = b; :}
         ;
-		
+/** Inicio de un Bloque */
+inicB   ::= {: bloque = new Bloque(bloque, true); :}
+        ;
+/** Fin de un Bloque */
+finB    ::= {: Bloque b = bloque; bloque = bloque.getParent(); RESULT = b; :}
+        ;
+/** Lista de Instrucciones */
+lInst	::= lInst inst:i 	{: bloque.agregarInst(i); :}
+        |   inst:i 		    {: bloque.agregarInst(i); :}
+        ;
+/** Tipos de Instrucciones */		
+inst	::= Decl:i		PYCOMA	{: RESULT = i; :}
+		|	SubProg:i			{: RESULT = i; :}
+		|	iDeclA:i	PYCOMA  {: RESULT = i; :}
+        |   iAsig:i     PYCOMA	{: RESULT = i; :}
+        |   iSi:i       		{: RESULT = i; :}
+        |   iSino:i     		{: RESULT = i; :}
+        |   iHacer:i    		{: RESULT = i; :}
+		|	llamProc:i	PYCOMA	{: RESULT = i; :}		
+        ;
+/** Declaracion */
+Decl	::= tipoG:t Var:i
+		{:  Decl inst = new Decl(t, i.text );	
+			Informacion info = new Informacion(i.text,t,null, 0);
+			if (t.equals(TipoF.INT)) 
+				info.setValor(0);
+			else if (t.equals(TipoF.FLOAT)) 
+				info.setValor(0.0);
+			else if (t.equals(TipoF.BOOL)) 
+				info.setValor(new Booleano(false));
+			noError = noError && inst.esCorrecta(bloque,info, i.lineBegin+1);			
+			if (bloque.getTS().getLocally(i.text) == null) 
+				bloque.getTS().add(i.text ,info);
+            RESULT = null;
+        :}				
+		|	TIPODATO ID IGUAL iniBProc LVar finB:b
+		{:	RESULT = null;
+		:}
+		|	TIPODATO ID IGUAL iniBProc LVar COMA discr finB:b
+		{:	RESULT = null;
+		:}
+        ;
+/** Declaracion con Asignacion*/
+iDeclA	::= tipoG:t Var:i ASIGNACION expr:e
+		{:  Decl inst = new Decl(t, i.text );	
+			Informacion info = new Informacion(i.text,t,e,0);
+			noError = noError && inst.esCorrecta(bloque, info, i.lineBegin+1);
+			if (bloque.getTS().get(i.text) == null) 
+				bloque.getTS().add(i.text,info);				
+			InstAsig insta = new InstAsig(i.text, e); 					
+			noError = noError && insta.esCorrecta(bloque, info, i.lineBegin+1);				
+			RESULT = insta;        
+        :}
+        ;
+/** Instruccion de Asignacion */
+iAsig	::= Var:d ASIGNACION expr:e
+        {: 	InstAsig i = new InstAsig(d.text , e); 
+			Informacion info = new Informacion(d.text,TipoF.INT,e,0);			
+			noError = noError && i.esCorrecta(bloque, info, d.lineBegin+1);
+			RESULT = i; 
+		:}
+        ;
+/** Instruccion Condicional */		
+iSi	::= SI APARENT expr:e CPARENT bloq:l FINSI
+		{: RESULT = new InstIf(e, l ); :}
+        ;
+/** Instruccion Condicional con flujo alterno */		
+iSino 	::= SI APARENT expr:e CPARENT bloq:l1 SINO bloq:l2 FINSI
+		{: RESULT = new InstIfElse(e, l1,l2); :}
+        ;
+/** Instruccion de Iteracion */		
+iHacer	::= HACER APARENT expr:e CPARENT bloq:l FINHACER
+		{: RESULT = new InstDo(e, l); :}
+        ;
+/** Instruccion de llamada a un procedimiento */		
+llamProc::=	ID:i APARENT LParam:l CPARENT
+		{:	if (!bloque.getTS().isDefined(i.text)) {
+				noError = noError & false;
+				System.out.println("ERROR (linea "+(i.lineBegin+1)+
+					") El subprograma '"+i.text+"' no ha sido definido.");
+			} 
+			RESULT = null;
+			//new InstProc(i,l); 
+		:}
+		;
+/** Definicion de subprograma */		
+SubProg	::=	Proc	{: RESULT = null; :}
+		|	Func	{: RESULT = null; :}
+		;
+/** Definicion de Procedimiento */				
+Proc	::= PROC ID:i iniBProc APARENT Param CPARENT lInst:l finB:b FINPROC
+			{:	if (bloque.getTS().get(i.text) != null) {
+					Informacion info = bloque.getTS().get(i.text);
+					InfoSub is = (InfoSub)info.valor;				
+					is.setBloque(b);
+					info.setValor(is);
+					bloque.getTS().add(i.text, info);
+				}
+			:}
+		;
+/** Definicion de Funcion */					
+Func	::= FUNC tipo ID:i iniBProc APARENT LVar CPARENT lInst:l finB:b FINFUNC
+			{:	if (bloque.getTS().get(i.text) != null) {
+					Informacion info = bloque.getTS().get(i.text);
+					InfoSub is = (InfoSub)info.valor;				
+					is.setBloque(b);
+					info.setValor(is);				
+					bloque.getTS().add(i.text, info);
+				}
+			:}
+		;
+/** Creacion del bloque de un subprograma */	
+iniBProc::=	{: 	bloque = new Bloque(bloque, false); :}
+		;
+/** Parametros de un procedimiento */		
 Param	::=	ParamE PYCOMA ParamES PYCOMA ParamS
 		|	ParamE:p1 PYCOMA ParamS
 		|	ParamES:p1 PYCOMA ParamS
@@ -154,117 +249,26 @@ Param	::=	ParamE PYCOMA ParamES PYCOMA ParamS
 		|	ParamES
 		|	ParamS
 		;
-
+/** Parametros de entrada de un procedimiento */
 ParamE	::=	ENTRADA DOSPUNTOS LVar
 		;
-		
+/** Parametros de entrada/salida de un procedimiento */		
 ParamES	::=	ENTSAL DOSPUNTOS LVar
 		;
-		
+/** Parametros de salida de un procedimiento */		
 ParamS	::=	SALIDA DOSPUNTOS LVar
 		;
-
-LVar	::=	LVar COMA tipo:t ID:i
-		{:	Informacion info = new Informacion(i.text, t, null, 0);	//especificar tipo: E, ES, S
+/** Lista de parametros (tipo, identificador) */	
+LVar	::=	LVar COMA tipoG:t ID:i
+		{:	Informacion info = new Informacion(i.text, t, null, 0);
 			bloque.getTS().add(i.text, info);
 		:}
-		|	tipo:t ID:i
-		{: 	
-			Informacion info = new Informacion(i.text, t, null, 0);
+		|	tipoG:t ID:i
+		{: 	Informacion info = new Informacion(i.text, t, null, 0);
 			bloque.getTS().add(i.text, info);
 		:}
 		;
-		
-bloq    ::= inicB lInst finB:b {: RESULT = b; :}
-        ;
-
-inicB   ::= {: bloque = new Bloque(bloque); :}
-        ;
-
-finB    ::= {: Bloque b = bloque; bloque = bloque.getParent(); RESULT = b; :}
-        ;
-
-lInst	::= lInst inst:i 	{: bloque.agregarInst(i); :}
-        |   inst:i 		    {: bloque.agregarInst(i); :}
-        ;
-		
-inst	::= Decl:i		PYCOMA	{: RESULT = i; :}
-		|	iDeclA:i	PYCOMA  {: RESULT = i; :}
-        |   iAsig:i     PYCOMA	{: RESULT = i; :}
-        |   iSi:i       		{: RESULT = i; :}
-        |   iSino:i     		{: RESULT = i; :}
-        |   iHacer:i    		{: RESULT = i; :}
-        ;
-
-Decl	::= tipo:t ID:i
-		{:  Decl inst = new Decl(t, i.text );	
-			Informacion info = new Informacion(i.text,t,null, 0);
-			error = inst.esCorrecta(bloque,info, i.lineBegin+1);			
-			if (bloque.getTS().getLocally(i.text) == null) 
-				bloque.getTS().add(i.text ,info);
-            RESULT = inst;
-        :}		
-		|	ACORCH ENTERO:e CCORCH tipo:t ID:i				
-        ;
-
-iDeclA	::= tipo:t ID:i ASIGNACION expr:e
-		{:  Decl inst = new Decl(t, i.text );	
-			Informacion info = new Informacion(i.text,t,e,0);
-			error = inst.esCorrecta(bloque, info, i.lineBegin+1);
-			if (bloque.getTS().get(i.text) == null) 
-				bloque.getTS().add(i.text,info);				
-			InstAsig insta = new InstAsig(i.text, e); 					
-			error = insta.esCorrecta(bloque, info, i.lineBegin+1);				
-			RESULT = insta;
-        
-        :}
-		|	ACORCH CCORCH tipo:t ID:i ASIGNACION ACORCH arreglo:a CCORCH		
-        ;
-
-tipo    ::= DECLENTERO:t    {: RESULT = TipoF.INT; :}
-        |   DECLREAL:t      {: RESULT = TipoF.FLOAT; :}
-        |   DECLBOOL:t      {: RESULT = TipoF.BOOL; :}
-        ;
-		
-iAsig	::= ID:d ASIGNACION expr:e
-        {: 	InstAsig i = new InstAsig(d.text , e); 
-			Informacion info = new Informacion(d.text,TipoF.INT,e,0);			
-			error = i.esCorrecta(bloque, info, d.lineBegin+1);
-			RESULT = i; 
-		:}
-		|	ID:d ASIGNACION ACORCH arreglo:a CCORCH        
-        ;
-
-arreglo	::= arreglo:a COMA elem:e
-		{:	a.add(e);
-			RESULT = a;
-		:}
-		|	elem:e
-		{: 	Vector v = new Vector();
-			v.add(e);
-			RESULT = v;
-		:}
-		;
-		
-elem	::=	ENTERO:e		{: RESULT = new Integer(e); :}
-		|	REAL:e			{: RESULT = new Float(e); :}
-		|	CIERTO:e		{: RESULT = new Boolean(true); :}
-		|	FALSO:e			{: RESULT = new Boolean(false); :}
-		|	ID:e			{: RESULT = e; :}
-		;
-		
-iSi	::= SI APARENT expr:e CPARENT bloq:l FINSI
-		{: RESULT = new InstIf(e, l ); :}
-        ;
-		
-iSino 	::= SI APARENT expr:e CPARENT bloq:l1 SINO bloq:l2 FINSI
-		{: RESULT = new InstIfElse(e, l1,l2); :}
-        ;
-		
-iHacer	::= HACER APARENT expr:e CPARENT bloq:l FINHACER
-		{: RESULT = new InstDo(e, l); :}
-        ;
-
+/** Definicion de Expresion */	
 expr	::= expr:e1 IGUAL expr:e2
 		{:  RESULT = new ExprBin(e1, OperadorB.IGUAL, e2); :}
 		|	expr:e1 DIF expr:e2
@@ -294,9 +298,11 @@ expr	::= expr:e1 IGUAL expr:e2
 		|   expr:e1 MOD expr:e2
 		{:  RESULT = new ExprBin(e1, OperadorB.MOD ,e2); :}
 		|	fact:f
-		{:	RESULT = f; :}
+		{:	RESULT = f; :}		
+		|	expr:e PUNTO expr
+		{:	RESULT = e; :}
         ;
-	
+/** Definicion de Factor */		
 fact	::= APARENT expr:e CPARENT 
 		{:  RESULT = e; :}
         |   ENTERO:n 
@@ -313,10 +319,79 @@ fact	::= APARENT expr:e CPARENT
 		{:  RESULT = new ExprUna (OperadorU.REDONDEO, f); :}
         |   NOLOG fact:f
 		{:  RESULT = new ExprUna (OperadorU.NOT, f); :}
-        |   ID:i 
-		{:  Factor e = new Factor (TipoF.ID, i ); RESULT = e; :}
+        |   Var:i 
+		{:  Factor e = new Factor (TipoF.ID, i.text ); 
+			noError = noError && e.esCorrecta(bloque, i.lineBegin+1); 
+			RESULT = e;
+		:}	
         |   CIERTO:c 
 		{: RESULT= new Factor(TipoF.BOOL, new Booleano(true)); :}
         |   FALSO:c 
-		{: RESULT= new Factor(TipoF.BOOL, new Booleano(false)); :}
+		{: RESULT= new Factor(TipoF.BOOL, new Booleano(false)); :}		
+		|	arreglo:l
+		{: RESULT = new Arreglo(TipoF.ARRAY, 0, l); :}
         ;
+/** Definicion de Variable */
+Var		::=	ID:i							{: RESULT = i; :}
+		|	ID:i LCorchN					{: RESULT = i; :}
+		|	ID:i PUNTO ID					{: RESULT = i; :}
+		|	ID:i APARENT LParam CPARENT		
+		{: 	if (bloque.getTS().get(i.text) == null) {
+				noError = noError & false;
+				System.out.println("ERROR (linea "+(i.lineBegin+1)+
+					") El subprograma '"+i.text+"' no ha sido definido.");
+			}
+			RESULT = i; 
+		:}
+		;
+/** Lista de parametros que se pasan al llamar a un subprograma */
+LParam	::=	LParam:l COMA expr:e
+		{:  l.add(e);
+			RESULT = l;
+		:}
+		|	expr:e
+		{:  LinkedList<Expresion> l = new LinkedList<Expresion>();
+			l.add(e);
+			RESULT = l;
+		:}
+		;
+/** Tipos de Datos */
+tipoG	::=	tipo:t			{: RESULT = t; :}
+		|	LCorchN tipo	{: RESULT = TipoF.ARRAY; :}
+		|	LCorch tipo		{: RESULT = TipoF.ARRAY; :}
+		;
+/** Tipos Basicos de Datos */		
+tipo    ::= DECLENTERO:t    {: RESULT = TipoF.INT; :}
+        |   DECLREAL:t      {: RESULT = TipoF.FLOAT; :}
+        |   DECLBOOL:t      {: RESULT = TipoF.BOOL; :}
+        ;
+/** Definicion del discriminante de un tipo Variante */
+discr	::=	CASO ID DOSPUNTOS tipoG ES lDiscr
+		;
+/** Definicion de un caso del discriminante */
+lDiscr	::=	lDiscr fact APARENT LVar CPARENT
+		|	fact APARENT LVar CPARENT
+		;
+/** Definicion de la dimension y tamaño de un arreglo */	
+LCorchN	::=	LCorchN ACORCH expr CCORCH
+		|	ACORCH expr CCORCH
+		;
+/** Definicion de la dimension de un arreglo */			
+LCorch	::=	LCorch ACORCH CCORCH
+		|	ACORCH CCORCH
+		;
+/** Contenido de un arreglo */	
+arreglo	::= ACORCH Lelem:l CCORCH		{: RESULT = l; :}
+		;
+/** Lista de elementos */			
+Lelem	::= Lelem:L COMA fact:f
+		{:	L.add(f);
+			RESULT = L;
+		:}
+		|	fact:f
+		{: 	LinkedList<Expresion> L = new LinkedList<Expresion>();
+			L.add(f);
+			RESULT = L;
+		:}
+		;
+

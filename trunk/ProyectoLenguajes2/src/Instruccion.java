@@ -6,12 +6,12 @@ import java.util.*;
 /**
  * Universidad Simon Bolivar
  * Lenguajes de Programacion II
+ * Entrega final 7/04/2008
  * 
  * Maria Sol Ferrer 04-36975
  * Jamil Navarro 04-37334
  *
- * Proyecto: Procesador de lenguaje imperativo.
- * 
+ * Proyecto: Procesador de lenguaje imperativo. 
  * Instruccion.java: clase Instruccion.
  * 
  */
@@ -22,15 +22,11 @@ import java.util.*;
  */
 abstract class Inst {
     /**
-     * Metodo desarrollado por conveniencia. Imprime la representacion en
-     * <b>String</b> del objeto.
-     */
-    public abstract String imprimir(int i);
-    
-    public abstract boolean esCorrecta(Bloque c, Informacion info, int linea);
-    
-    public abstract void setParent(Bloque c);
-
+	* Metodo desarrollado por conveniencia. Imprime la representacion en
+	* <b>String</b> del objeto.
+	*/
+    public abstract String imprimir(int i);    
+    public abstract boolean esCorrecta(Bloque c, Informacion info, int linea);    
 }
 
 /**
@@ -39,33 +35,29 @@ abstract class Inst {
 class Decl extends Inst {
         
     //Nombre del tipo de la variable declarada
-    private TipoF Tipo;
-    
+    private TipoF Tipo;    
     //Nombre de la variable declarada
     private String Var;
     
     /**
-     * Constructor de una instruccion de Declaracion
-     * @param t Tipo de la variable declarada
-     * @param v Nombre de la variable declarada
-     */
+	* @param t Tipo de la variable declarada
+	* @param v Nombre de la variable declarada
+	*/
     public Decl(TipoF t, String v) {
         this.Tipo = t;
         this.Var = v;
     }
-
 	public String imprimir(int i) {
         return "";
-    }
-	
+    }	
     public String toString() {
         return Tipo +" "+ Var+";";
     }
-
-    public boolean esCorrecta(Bloque c, Informacion info, int linea) {  
-		
-		if( (c.getTS()).isDefinedLocally(this.Var) && ((((c.getTS()).getLocally(this.Var)).getStatus()) == 0) ) {
-			System.out.println("ERROR (linea "+linea+") Variable '"+this.Var+"' ya esta definida.");			
+    public boolean esCorrecta(Bloque c, Informacion info, int linea) {  		
+		if( (c.getTS()).isDefinedLocally(this.Var) && 
+				((((c.getTS()).getLocally(this.Var)).getStatus()) == 0) ) {
+			System.out.println("ERROR (linea "+linea+") Variable '"+this.Var
+				+"' ya esta definida.");			
 			info.setStatus(1);
 			c.getTS().add(this.Var ,info);
 			return false;
@@ -88,10 +80,10 @@ class InstAsig extends Inst {
     private Expresion E;
     
     /**
-     * Constructor de una Instruccion de Asignacion
-     * @param v identificador de la variable a ser asignada
-     * @param e expresion a asignar a la variable
-     */
+	* Constructor de una Instruccion de Asignacion
+	* @param v identificador de la variable a ser asignada
+	* @param e expresion a asignar a la variable
+	*/
     public InstAsig (String v, Expresion e) {
         this.Variable = v;
         this.E = e;
@@ -108,8 +100,7 @@ class InstAsig extends Inst {
     }
     public String toString(){
         return Variable + " := " + E.toString() + ";";
-    }	
-	
+    }		
     public boolean esCorrecta(Bloque c, Informacion info, int linea) {
 		boolean ok = true;
 		//Chequeo de variable definida.
@@ -123,7 +114,7 @@ class InstAsig extends Inst {
 		TipoF tipoV = c.getTS().get(this.Variable).tipo;
 		//chequeo de la expresion.
 		if (tipoE.equals(TipoF.ERROR)) {
-			System.out.println("ERROR (linea "+linea+") Error de tipo en la expresion ("+this.E+").");
+			System.out.println("ERROR (linea "+linea+") Error de tipo en la expresion "+this.E+".");
 			ok = false;
 		}
 		//chequeo de compatibilidad entre la expresion y la variable
@@ -142,9 +133,6 @@ class InstAsig extends Inst {
 		}
 		return ok;        		
     }
-
-    public void setParent(Bloque c) {
-    }
 }
 
 /**
@@ -153,21 +141,19 @@ class InstAsig extends Inst {
 class InstIf extends Inst {
     
     //Condicion del la instruccion
-    protected Expresion Condicion;
-    
+    protected Expresion Condicion;    
     //Instrucciones a ejecutar si la condicion se cumple
     protected Bloque inst;
     
     /**
-     * Constructor de una expresion condicional
-     * @param e Expresion de la Condicion
-     * @Param l Instrucciones a ejecutar si el condicional se cumple
-     */
+	* Constructor de una expresion condicional
+	* @param e Expresion de la Condicion
+	* @Param l Instrucciones a ejecutar si el condicional se cumple
+	*/
     public InstIf (Expresion e, Bloque c) {
         this.Condicion = e;
         this.inst = c;
     }
-
     public String imprimir(int i){
         String s = "";
 		for (int j=0;j<i;j++) { s+="-"; }
@@ -176,20 +162,13 @@ class InstIf extends Inst {
 		s+= "-" + Condicion.imprimir(i+1);		
 		s+= inst.imprimir(i);
 		return s;
-    }
-    
+    }    
     public String toString(){
         return "si "+Condicion.toString()+"\n"+inst+"fins;";
     }
-
     public boolean esCorrecta(Bloque c, Informacion info, int linea) {
-        return this.Condicion.esCorrecta(c);
+        return this.Condicion.esCorrecta(c, 0);
     }
-
-    public void setParent(Bloque c) {
-        this.inst.setParent(c);
-    }
-
 }
 
 /**
@@ -199,17 +178,17 @@ class InstIfElse extends InstIf {
     
     //Intrucciones a ejecutar si la Condicion no es cierta
     private Bloque instElse;
+	
     /**
-     * Constructor de la instruccion condicional con instrucciones alternativas
-     * @param e Condicion
-     * @param l1 instrucciones a ejecutar si la Condicion es cierta
-     * @param l2 instrucciones a ejecutar si la condicion es falsa
-     */
+	* Constructor de la instruccion condicional con instrucciones alternativas
+	* @param e Condicion
+	* @param l1 instrucciones a ejecutar si la Condicion es cierta
+	* @param l2 instrucciones a ejecutar si la condicion es falsa
+	*/
     public InstIfElse (Expresion e, Bloque c1, Bloque c2) {
         super(e,c1);
         this.instElse = c2;
     }
-
      public String imprimir(int i){
         String s = "";
 		for (int j=0;j<i;j++) { s+="-"; }
@@ -221,15 +200,9 @@ class InstIfElse extends InstIf {
 		for (int j=0;j<i;j++) { s+="-"; }
 		s+= "-Inst Sino\n" + instElse.imprimir(i+1);
 		return s;
-    }
-	
+    }	
     public String toString() {
         return super.toString().replaceFirst("fins","sino\n"+instElse+"fins");
-    }
-
-    public void setParent(Bloque c) {
-        super.setParent(c);
-        this.instElse.setParent(c);
     }
 }
 
@@ -239,21 +212,19 @@ class InstIfElse extends InstIf {
 class InstDo extends Inst {
     
     //Condicion de la Iteracion
-    private Expresion Condicion;
-    
+    private Expresion Condicion;    
     //Cuerpo de la iteracion
     private Bloque inst;
     
     /**
-     * Constructor de la Instruccion de Iteracion
-     * @param e Condicion de la iteracion
-     * @param l Cuerpo de la Iteracion
-     */
+	* Constructor de la Instruccion de Iteracion
+	* @param e Condicion de la iteracion
+	* @param l Cuerpo de la Iteracion
+	*/
     public InstDo (Expresion e, Bloque c) {
         this.Condicion = e;
         this.inst = c;
     }
-
     public String imprimir(int i){
         String s = "";
 		for (int j=0;j<i;j++) { s+="-"; }
@@ -262,19 +233,11 @@ class InstDo extends Inst {
 		s+= "-" + Condicion.imprimir(i+1);		
 		s+= inst.imprimir(i);
 		return s;
-    }
-    
+    }    
     public String toString() {
         return "Hacer " + Condicion +"\n"+inst+"finh;";
     }
-
     public boolean esCorrecta(Bloque c, Informacion info, int linea) {
-        return this.Condicion.esCorrecta(c);
+        return this.Condicion.esCorrecta(c, 0);
     }
-
-    public void setParent(Bloque c) {
-        this.inst.setParent(c);
-    }
-    
-
 }

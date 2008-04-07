@@ -3,6 +3,7 @@ import java_cup.runtime.*;
 /**
  * Universidad Simon Bolivar
  * Lenguajes de Programacion II
+ * Entrega final 7/04/2008
  * 
  * Maria Sol Ferrer 04-36975
  * Jamil Navarro 04-37334
@@ -103,13 +104,13 @@ ESPACIO=([\ \n\r\t\f])+
 <YYINITIAL> ":" { 
   return new Symbol(sym.DOSPUNTOS, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
-<YYINITIAL> "e" { 
+<YYINITIAL> "ent" { 
   return new Symbol(sym.ENTRADA, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
-<YYINITIAL> "es" { 
+<YYINITIAL> "ent-sal" { 
   return new Symbol(sym.ENTSAL, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
-<YYINITIAL> "s" { 
+<YYINITIAL> "sal" { 
   return new Symbol(sym.SALIDA, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
 
@@ -129,6 +130,16 @@ ESPACIO=([\ \n\r\t\f])+
 <YYINITIAL> "booleano" { 
   return new Symbol(sym.DECLBOOL, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
+<YYINITIAL> "tipo" { 
+  return new Symbol(sym.TIPODATO, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+<YYINITIAL> "caso" { 
+  return new Symbol(sym.CASO, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+<YYINITIAL> "es" { 
+  return new Symbol(sym.ES, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+
 <YYINITIAL> "[" { 
   return new Symbol(sym.ACORCH, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
@@ -137,6 +148,9 @@ ESPACIO=([\ \n\r\t\f])+
 }
 <YYINITIAL> "," { 
   return new Symbol(sym.COMA, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+<YYINITIAL> "." { 
+  return new Symbol(sym.PUNTO, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
 
 
