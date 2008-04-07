@@ -15,10 +15,8 @@ import java.util.*;
  * 
  */
 action code {:
-    Bloque bloque = (Misc.acumulador != null)? Misc.acumulador : new Bloque();
-    boolean noError = false;
-    String subprog = "";
-
+    Bloque bloque = new Bloque(null, true);	
+	boolean noError = true;
 :}
 
 /**
@@ -74,7 +72,6 @@ terminal TokenValue FINHACER;
 terminal TokenValue PYCOMA;
 terminal TokenValue CIERTO;
 terminal TokenValue FALSO;
-
 		
 terminal Integer ENTERO;
 terminal TokenValue ID;
@@ -105,7 +102,7 @@ non terminal LCorchN;
 non terminal LCorch;
 non terminal TokenValue Var;
 non terminal discr, lDiscr;
-non terminal preprocesar;
+non terminal lSubProgs;
 
 /**
   * Orden de Precedencia
@@ -122,11 +119,15 @@ precedence left PUNTO;
 /**
  * Gramatica del lenguaje.
  */
-inicio	::= COMIENZO bloq:b FIN
+inicio	::= lSubProgs COMIENZO bloq:b FIN
         {: 	if (noError)
-                b.imprimirB(0); 
-        :}
-        ;
+				b.imprimirB(0); 
+		:}
+		;
+lSubProgs::= lSubProgs SubProg
+		|	SubProg
+		|
+		;
 /** Definicion de un Bloque */
 bloq    ::= inicB lInst finB:b {: RESULT = b; :}
         ;
@@ -142,7 +143,6 @@ lInst	::= lInst inst:i 	{: bloque.agregarInst(i); :}
         ;
 /** Tipos de Instrucciones */		
 inst	::= Decl:i		PYCOMA	{: RESULT = i; :}
-		|	SubProg:i			{: RESULT = i; :}
 		|	iDeclA:i	PYCOMA  {: RESULT = i; :}
         |   iAsig:i     PYCOMA	{: RESULT = i; :}
         |   iSi:i       		{: RESULT = i; :}
@@ -376,7 +376,7 @@ discr	::=	CASO ID DOSPUNTOS tipoG ES lDiscr
 lDiscr	::=	lDiscr fact APARENT LVar CPARENT
 		|	fact APARENT LVar CPARENT
 		;
-/** Definicion de la dimension y tamaï¿½o de un arreglo */	
+/** Definicion de la dimension y tamaño de un arreglo */	
 LCorchN	::=	LCorchN ACORCH expr CCORCH
 		|	ACORCH expr CCORCH
 		;

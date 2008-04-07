@@ -117,11 +117,14 @@ inicio	::= inicializar SubProgs loquesea
 inicializar ::= {: Misc.acumulador = new Bloque(); bloque = Misc.acumulador; :}
             ;
 
-SubProgs::= SubProgs Proc
-        |   SubProgs Func
+SubProgs::= SubProgs SubProg
+        |   SubProg
         |	
         ;
-				
+SubProg	::=	Proc
+		|	Func
+		;
+		
 Proc	::= PROC ID:i APARENT Param:p CPARENT loquesea FINPROC
                 {:	
                         
