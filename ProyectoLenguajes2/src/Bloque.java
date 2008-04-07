@@ -47,22 +47,24 @@ class Bloque{
 	*/
     public void imprimirB(int i){
         System.out.println(this.imprimir(i));
-    }    	
-	public String imprimir(int i) {
-        Inst in;
-        String acum = "";
-		for(int j=0; j<this.inst.size(); j++){
-            in = this.inst.get(j);
-			if (in!=null) {				
-				acum+= in.imprimir(i+1);            
-			}
-        }      
-        return acum;
+    }   
+    
+    public String imprimir(int i) {
+    Inst in;
+    String acum = "";
+            for(int j=0; j<this.inst.size(); j++){
+        in = this.inst.get(j);
+                    if (in!=null) {				
+                            acum+= in.imprimir(i+1);            
+                    }
+    }      
+    return acum;
     }
     /**
-	* Agrega una instruccion a la lista de instrucciones
-	* @param i una Instruccion a agregar
-	*/
+     * Agrega una instruccion a la lista de instrucciones
+     * 
+     * @param i una Inst a agregar
+     */
     public void agregarInst(Inst i){
         if (i != null)
 			this.inst.add(i);
@@ -106,12 +108,13 @@ class Bloque{
         this.inst = new LinkedList<Inst>();
     }          
     /**
-	* Constructor del envoltorio para la Lista de Instrucciones y para la Tabla
-	* de Simbolos. Agrega una instrucciona al nuevo objeto y una declaracion.
-	* @param i Instruccion a agregar
-	* @param id Nombre de la variable
-	* @param tipo Tipo de la variable
-	*/
+     * Constructor del envoltorio para la Lista de Instrucciones y para la Tabla
+     * de Simbolos. Agrega una instrucciona al nuevo objeto y una declaracion.
+     * 
+     * @param i Inst a agregar
+     * @param id Nombre de la variable
+     * @param tipo Tipo de la variable
+     */
     Bloque(Inst i, String id, Informacion info){
         this();
         this.agregarInst(i);
