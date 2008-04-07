@@ -16,7 +16,7 @@ import java.util.*;
  */
 action code {:
     Bloque bloque = (Misc.acumulador != null)? Misc.acumulador : new Bloque();
-    boolean error = false;
+    boolean noError = false;
     String subprog = "";
 
 :}
