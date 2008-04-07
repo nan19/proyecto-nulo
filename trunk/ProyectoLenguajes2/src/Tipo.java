@@ -15,7 +15,7 @@ public abstract class Tipo {
     
     
 }
-
+/*
 class Arreglo extends Tipo{
     private int size;
     private Tipo tipo;
@@ -25,7 +25,7 @@ class Arreglo extends Tipo{
         this.tipo = t;
     }
 }
-
+*/
 class TBasico extends Tipo{
     private TipoB tipo;
     
@@ -53,20 +53,6 @@ class TParam extends Tipo{
     public TParam(Tipo t, TipoES e){
         this.tipo = t;
         this.es = e;
-    }
-}
-
-class InfoSub{
-    Bloque bloque;
-    java.util.List param;
-    
-    public InfoSub(Bloque b, java.util.List p){
-        this.bloque = b;
-        this.param = p;
-    }
-    
-    public void setBloque(Bloque b){
-        this.bloque = b;
     }
 }
 
