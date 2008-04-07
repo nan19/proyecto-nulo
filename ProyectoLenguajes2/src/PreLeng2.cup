@@ -124,17 +124,28 @@ SubProgs::= SubProgs Proc
 				
 Proc	::= PROC ID:i APARENT Param:p CPARENT loquesea FINPROC
                 {:	
+                        
+                    if( bloque.getTS().isDefined(i.text)){
+                        bloque.getTS().get(i.text).setStatus(1);
+                    }else{
                         InfoSub is = new InfoSub(null, p);
                         Informacion info = new Informacion(i.text, TipoF.PROC, is, 0);
                         bloque.getTS().add(i.text, info);
+                    }
+                        
                 :}
 		;
 				
 Func	::= FUNC tipo ID:i APARENT LVar:v CPARENT loquesea FINFUNC
-			{:	InfoSub is = new InfoSub(null, v);
-                                Informacion info = new Informacion(i.text, TipoF.PROC, is, 0);
-				bloque.getTS().add(i.text, info);
-			:}
+                {:	
+                    if( bloque.getTS().isDefined(i.text)){
+                        bloque.getTS().get(i.text).setStatus(1);
+                    }else{
+                        InfoSub is = new InfoSub(null, v);
+                        Informacion info = new Informacion(i.text, TipoF.PROC, is, 0);
+                        bloque.getTS().add(i.text, info);
+                    }
+                :}
 		;
 		
 Param	::=	ParamE:p1 PYCOMA ParamES:p2 PYCOMA ParamS:p3    
