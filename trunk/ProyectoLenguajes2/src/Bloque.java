@@ -46,7 +46,7 @@ class Bloque{
 	* como la tabla de simbolos
 	*/
     public void imprimirB(int i){
-        System.out.println(this.imprimir(i));
+        System.out.println(this.imprimir(i)+this.tabla);
     }   
     
     public String imprimir(int i) {

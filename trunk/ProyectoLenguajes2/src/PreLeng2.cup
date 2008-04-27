@@ -6,15 +6,16 @@ import java.io.*;
 /**
  * Universidad Simon Bolivar
  * Lenguajes de Programacion II
+ * Entrega final 7/04/2008
  * 
  * Maria Sol Ferrer 04-36975
  * Jamil Navarro 04-37334
  *
  * Proyecto: Procesador de lenguaje imperativo.
- * Leng2.cup: Analizador sintactico del lenguaje
+ * PreLeng2.cup: Analizador sintactico previo que reconoce 
+ * subprogramas y los agrega a la Tabla de Simbolos
  * 
  */
-
 action code {:
     TipoES es;
     Bloque bloque;
@@ -25,7 +26,6 @@ action code {:
  * Definicion de los tokens generados por el escaner
  * con el tipo asociado.
  */
-terminal TokenValue IDENT;
 terminal TokenValue FUNC;
 terminal TokenValue FINFUNC;
 terminal TokenValue PROC;
@@ -39,11 +39,15 @@ terminal TokenValue FIN;
 terminal TokenValue DECLENTERO;
 terminal TokenValue DECLREAL;
 terminal TokenValue DECLBOOL;
+terminal TokenValue TIPODATO;
+terminal TokenValue CASO;
+terminal TokenValue ES;
 terminal TokenValue APARENT;
 terminal TokenValue CPARENT;
 terminal TokenValue ACORCH;
 terminal TokenValue CCORCH;  
 terminal TokenValue COMA;  
+terminal TokenValue PUNTO;  
 terminal OperadorB MAS;
 terminal OperadorB MENOS;
 terminal OperadorB POR;
@@ -68,8 +72,6 @@ terminal TokenValue SINO;
 terminal TokenValue FINSI;
 terminal TokenValue HACER;
 terminal TokenValue FINHACER;
-terminal TokenValue ESCRIBIR;
-terminal TokenValue LEER;
 terminal TokenValue PYCOMA;
 terminal TokenValue CIERTO;
 terminal TokenValue FALSO;
@@ -78,7 +80,6 @@ terminal TokenValue FALSO;
 terminal Integer ENTERO;
 terminal TokenValue ID;
 terminal Float REAL;
-
 /**
  * Definicion de los simbolos no terminales de la
  * gramatica con el tipo de su atributo asociado.
@@ -99,7 +100,7 @@ non terminal loquesea;
 non terminal todo;
 
 /**
-  * Orden de Precedencia
+  * Orden de Precedencia.
   */
 precedence left IGUAL, DIF;
 precedence left OLOG;
@@ -224,51 +225,55 @@ loquesea ::= loquesea todo
             |   todo
             ;
 
-todo ::=    DOSPUNTOS
-            |   APARENT
-            |   CPARENT
-            |   ACORCH
-            |   CCORCH
-            |   COMA 
-            |   MAS
-            |   MENOS
-            |   POR
-            |   ENTRE
-            |   YLOG
-            |   OLOG
-            |   NOLOG
-            |   IGUAL
-            |   DIF
-            |   MAYOR
-            |   MENOR
-            |   MAYORIGUAL
-            |   MENORIGUAL
-            |   ASIGNACION
-            |   ENTERO
-            |   REAL
-            |   CIERTO
-            |   FALSO
-            |   ID
-            |   COMIENZO
-            |   FIN
-            |   DECLENTERO
-            |   DECLREAL
-            |   DECLBOOL
-            |   SI
-            |   SINO
-            |   FINSI
-            |   HACER
-            |   FINHACER
-            |   ESCRIBIR
-            |   LEER
-            |   PISO
-            |   TECHO
-            |   REDONDEO
-            |   PYCOMA
-            |   IDENT
-            |   DIV
-            |   MOD
-            ;
+todo 	::= ENTRADA
+		|	ENTSAL
+		|	SALIDA
+		|	DOSPUNTOS
+		|	COMIENZO
+		|	FIN
+		|	DECLENTERO
+		|	DECLREAL
+		|	DECLBOOL
+		|	TIPODATO
+		|	CASO
+		|	ES
+		|	APARENT
+		|	CPARENT
+		|	ACORCH
+		|	CCORCH
+		|	COMA
+		|	PUNTO
+		|	MAS
+		|	MENOS
+		|	POR
+		|	ENTRE
+		|	DIV
+		|	MOD
+		|	TECHO
+		|	PISO
+		|	REDONDEO
+		|	YLOG
+		|	OLOG
+		|	NOLOG
+		|	IGUAL
+		|	DIF
+		|	MAYOR
+		|	MENOR
+		|	MAYORIGUAL
+		|	MENORIGUAL
+		|	ASIGNACION
+		|	SI
+		|	SINO
+		|	FINSI
+		|	HACER
+		|	FINHACER
+		|	PYCOMA
+		|	CIERTO
+		|	FALSO
+		|	ENTERO
+		|	ID
+		|	REAL
+		;
 
 tipo    ::= DECLENTERO:t    {: RESULT = TipoB.ENTERO; :}
         |   DECLREAL:t      {: RESULT = TipoB.REAL; :}

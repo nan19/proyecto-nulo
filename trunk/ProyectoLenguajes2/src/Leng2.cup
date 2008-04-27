@@ -15,14 +15,14 @@ import java.util.*;
  * 
  */
 action code {:
-    Bloque bloque = new Bloque(null, true);	
+    Bloque bloque = Misc.acumulador;	
 	boolean noError = true;
 :}
 
 /**
  * Definicion de los tokens generados por el escaner
  * con el tipo asociado.
- */ 
+ */  
 terminal TokenValue FUNC;
 terminal TokenValue FINFUNC;
 terminal TokenValue PROC;
@@ -121,7 +121,8 @@ precedence left PUNTO;
  */
 inicio	::= lSubProgs COMIENZO bloq:b FIN
         {: 	if (noError)
-				b.imprimirB(0); 
+				b.imprimirB(0);
+			
 		:}
 		;
 lSubProgs::= lSubProgs SubProg
@@ -210,9 +211,9 @@ llamProc::=	ID:i APARENT LParam:l CPARENT
 				noError = noError & false;
 				System.out.println("ERROR (linea "+(i.lineBegin+1)+
 					") El subprograma '"+i.text+"' no ha sido definido.");
-			} 
-			RESULT = null;
-			//new InstProc(i,l); 
+			} else				
+				RESULT = new InstProc(i.text, l);
+			
 		:}
 		;
 /** Definicion de subprograma */		

@@ -161,6 +161,8 @@ class InstIf extends Inst {
 		for (int j=0;j<i;j++) { s+="-"; }
 		s+= "-" + Condicion.imprimir(i+1);		
 		s+= inst.imprimir(i);
+		for (int j=0;j<i;j++) { s+="-"; }
+		s+= "-"+inst.getTS();
 		return s;
     }    
     public String toString(){
@@ -199,6 +201,8 @@ class InstIfElse extends InstIf {
 		s+= "-Inst Si\n" + inst.imprimir(i+1);
 		for (int j=0;j<i;j++) { s+="-"; }
 		s+= "-Inst Sino\n" + instElse.imprimir(i+1);
+		for (int j=0;j<i;j++) { s+="-"; }
+		s+= "-"+instElse.getTS();
 		return s;
     }	
     public String toString() {
@@ -232,6 +236,8 @@ class InstDo extends Inst {
 		for (int j=0;j<i;j++) { s+="-"; }
 		s+= "-" + Condicion.imprimir(i+1);		
 		s+= inst.imprimir(i);
+		for (int j=0;j<i;j++) { s+="-"; }
+		s+= "-"+inst.getTS();
 		return s;
     }    
     public String toString() {
@@ -239,5 +245,51 @@ class InstDo extends Inst {
     }
     public boolean esCorrecta(Bloque c, Informacion info, int linea) {
         return this.Condicion.esCorrecta(c, 0);
+    }
+}
+
+/**
+ * Clase que representa una instruccion de llamada a un procedimiento
+ */
+class InstProc extends Inst {
+    
+    //Identificador del procedimiento
+    private String id;    
+    //Lista de parametros
+    private LinkedList<Expresion> param;
+    
+    /**
+	* Constructor de la Instruccion de Llamada a Procedimientos
+	* @param id Identificador del procedimiento
+	* @param param Lista de parametros
+	*/
+    public InstProc (String id, LinkedList<Expresion> param) {
+        this.id = id;
+        this.param = param;
+    }
+    public String imprimir(int i){
+        String s = "";
+		for (int j=0;j<i;j++) { s+="-"; }
+		s+= "Llamada a procedimiento\n";
+		for (int j=0;j<i;j++) { s+="-"; }
+		s+= "-" + "Identificador\n";
+		for (int j=0;j<i;j++) { s+="-"; }
+		s+= "--" + id +"\n";
+		for (int j=0;j<i;j++) { s+="-"; }
+		s+= "-Lista de Parametros\n";
+		for (int j=0;j<i;j++) { s+="-"; }
+		s+="--";
+		s+="(";
+		for (int j=0;j<param.size();j++) {
+			s+= param.get(j) +", ";
+		}		
+		s+= ")\n";
+		return s;
+    }    
+    public String toString() {
+        return "Llamada a procedimiento" + id +"\n"+param+";";
+    }
+    public boolean esCorrecta(Bloque c, Informacion info, int linea) {
+        return true;
     }
 }
