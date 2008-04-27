@@ -1,10 +1,15 @@
-/*
- * Tipo.java
+/**
+ * Universidad Simon Bolivar
+ * Lenguajes de Programacion II
+ * Entrega final 7/04/2008
+ * 
+ * Maria Sol Ferrer 04-36975
+ * Jamil Navarro 04-37334
  *
- * Created on April 6, 2008, 4:04 PM
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
+ * Proyecto: Procesador de lenguaje imperativo.
+ * 
+ * Tipo.java: clase Tipo
+ * 
  */
 
 /**
@@ -15,17 +20,7 @@ public abstract class Tipo {
     
     
 }
-/*
-class Arreglo extends Tipo{
-    private int size;
-    private Tipo tipo;
-    
-    public Arreglo(int n, Tipo t){
-        this.size = n;
-        this.tipo = t;
-    }
-}
-*/
+
 class TBasico extends Tipo{
     private TipoB tipo;
     
