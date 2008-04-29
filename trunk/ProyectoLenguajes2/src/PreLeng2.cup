@@ -20,6 +20,7 @@ action code {:
     TipoES es;
     Bloque bloque;
     boolean error = false;
+    HashMap<String,TablaSim> discGlob;
 :}
 
 /**
@@ -75,8 +76,7 @@ terminal TokenValue FINHACER;
 terminal TokenValue PYCOMA;
 terminal TokenValue CIERTO;
 terminal TokenValue FALSO;
-
-		
+terminal TokenValue FINT;		
 terminal Integer ENTERO;
 terminal TokenValue ID;
 terminal Float REAL;
@@ -85,7 +85,7 @@ terminal Float REAL;
  * gramatica con el tipo de su atributo asociado.
  */
 non terminal inicio;
-non terminal TipoB tipo;
+non terminal Tipo tipo;
 non terminal SubProgs;
 non terminal SubProg;
 non terminal Proc;
@@ -94,7 +94,9 @@ non terminal List Param;
 non terminal List ParamE;
 non terminal List ParamES;
 non terminal List ParamS;
-non terminal List LVar;
+non terminal DVariable LVar;
+non terminal Object fact;
+non terminal HashMap lDiscr;
 non terminal inicializar;
 non terminal loquesea;
 non terminal todo;
@@ -123,8 +125,8 @@ SubProgs::= SubProgs SubProg
         |	
         ;
 SubProg	::=	Proc
-		|	Func
-		;
+        |	Func
+        ;
 		
 Proc	::= PROC ID:i APARENT Param:p CPARENT loquesea FINPROC
                 {:	
@@ -140,12 +142,12 @@ Proc	::= PROC ID:i APARENT Param:p CPARENT loquesea FINPROC
                 :}
 		;
 				
-Func	::= FUNC tipo ID:i APARENT LVar:v CPARENT loquesea FINFUNC
+Func	::= FUNC tipo ID:i APARENT LVar:dv CPARENT loquesea FINFUNC
                 {:	
                     //if( bloque.getTS().isDefined(i.text)){
                         bloque.getTS().get(i.text).setStatus(1);
                     //}else{
-                        InfoSub is = new InfoSub(null, v);
+                        InfoSub is = new InfoSub(null, dv.getLT());
                         Informacion info = new Informacion(i.text, TipoF.PROC, is, 0);
                         bloque.getTS().add(i.text, info);
                     //}
@@ -178,46 +180,51 @@ Param	::=	ParamE:p1 PYCOMA ParamES:p2 PYCOMA ParamS:p3
 		|	ParamS:p    {: RESULT = p; :}
 		;
 
-ParamE	::=	ENTRADA DOSPUNTOS LVar:l
+ParamE	::=	ENTRADA DOSPUNTOS LVar:dv
                 {: 
                     List<TParam> lp = new LinkedList<TParam>();
-                    for(int i=0; i< l.size(); i++){
-                        lp.add(new TParam((Tipo)l.get(i),TipoES.IN));
+                    for(int i=0; i< dv.getLT().size(); i++){
+                        lp.add(new TParam(dv.getLT().get(i),TipoES.IN));
                     }
                     RESULT = lp; 
                 :}
 		;
 		
-ParamES	::=	ENTSAL DOSPUNTOS LVar:l
+ParamES	::=	ENTSAL DOSPUNTOS LVar:dv
                 {: 
                     List<TParam> lp = new LinkedList<TParam>();
-                    for(int i=0; i< l.size(); i++){
-                        lp.add(new TParam((Tipo)l.get(i),TipoES.IN_OUT));
+                    for(int i=0; i< dv.getLT().size(); i++){
+                        lp.add(new TParam(dv.getLT().get(i),TipoES.IN_OUT));
                     }
                     RESULT = lp; 
                 :}
 		;
 		
-ParamS	::=	SALIDA DOSPUNTOS LVar:l
+ParamS	::=	SALIDA DOSPUNTOS LVar:dv
                 {: 
                     List<TParam> lp = new LinkedList<TParam>();
-                    for(int i=0; i< l.size(); i++){
-                        lp.add(new TParam((Tipo)l.get(i),TipoES.OUT));
+                    for(int i=0; i< dv.getLT().size(); i++){
+                        lp.add(new TParam(dv.getLT().get(i),TipoES.OUT));
                     }
                     RESULT = lp; 
                 :}
 		;
 
-LVar	::=	LVar:l COMA tipo:t ID:i
+LVar	::=	LVar:dv COMA tipo:t ID:i
                     {:	
-                            l.add(new TBasico(t));
-                            RESULT = l;
+                            //l.add(new TBasico(t));
+                            //RESULT = l;
+                            dv.add(t, i.text);
+                            RESULT = dv;
                     :}
 		|	tipo:t ID:i
                     {: 	
-                            List l = new LinkedList();
-                            l.add(new TBasico(t));
-                            RESULT = l; 
+                            //List l = new LinkedList();
+                            //l.add(new TBasico(t));
+                            //RESULT = l; 
+                            DVariable aux = new DVariable();
+                            aux.add(t,i.text);
+                            RESULT = aux;
                     :}
 		;
 
@@ -275,8 +282,38 @@ todo 	::= ENTRADA
 		|	REAL
 		;
 
-tipo    ::= DECLENTERO:t    {: RESULT = TipoB.ENTERO; :}
-        |   DECLREAL:t      {: RESULT = TipoB.REAL; :}
-        |   DECLBOOL:t      {: RESULT = TipoB.BOOLEANO; :}
+tipo    ::= DECLENTERO:t    {: RESULT = new TBasico(TipoB.ENTERO); :}
+        |   DECLREAL:t      {: RESULT = new TBasico(TipoB.REAL); :}
+        |   DECLBOOL:t      {: RESULT = new TBasico(TipoB.BOOLEANO); :}
+        |   ACORCH CCORCH tipo:t               {: RESULT = new TArreglo(t); :}
+        |   TIPODATO LVar:dv FINT              
+                {: RESULT = new TRegistro(dv.getTS()); :}   
+        |   TIPODATO LVar:ts COMA CASO tipo:t ID:i ES lDiscr:hm FINT 
+                {: 
+                    dv.add(t,i.text);
+                    RESULT = new TVariante(dv.getTS(),i.text, (HashMap<Object,TablaSim>)hm); 
+                :}
         ;
-		
+
+/** Definicion de un caso del discriminante */
+lDiscr	::= lDiscr:hm fact:f APARENT LVar:dv CPARENT
+                {: 
+                    if(!hm.containsKey(f)){
+                        hm.put(f,dv.getTS());
+                    }
+                    RESULT = hm;
+                :}
+        |   fact:f APARENT LVar:dv CPARENT
+                {:
+                    HashMap<Object,TablaSim> hm = new HashMap<String,TablaSim>();
+                    hm.put(f,dv.getTS());
+                    RESULT = hm;
+                :}
+        ;
+
+fact ::=    ID:v        {: RESULT = v.text; :}
+       |    CIERTO:v    {: RESULT = new Booleano(true); :}
+       |    FALSO:v     {: RESULT = new Booleano(false); :}
+       |    ENTERO:v    {: RESULT = v; :}
+       |    REAL:v      {: RESULT = v; :}
+       ;
