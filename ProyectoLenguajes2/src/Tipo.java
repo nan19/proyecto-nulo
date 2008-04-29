@@ -1,3 +1,6 @@
+
+import java.util.HashMap;
+
 /**
  * Universidad Simon Bolivar
  * Lenguajes de Programacion II
@@ -29,10 +32,40 @@ class TBasico extends Tipo{
     }
 }
 
+class TArreglo extends Tipo{
+    private Tipo tipo;
+    
+    public TArreglo(Tipo t){
+        this.tipo = t;
+    }
+}
+
+
+class TRegistro extends Tipo{
+    private TablaSim tabla;
+    
+    public TRegistro(TablaSim ts){
+        this.tabla = ts;
+    }
+}
+
+class TVariante extends Tipo{
+    private TablaSim tabla;
+    private String disc;
+    private HashMap<Object,TablaSim> discr;
+    
+    public TVariante(TablaSim ts, String d, HashMap<Object,TablaSim> dr){
+        this.tabla = ts;
+        this.discr = dr;
+        this.disc = d;
+    }
+    
+}
 enum TipoB{
     ENTERO,
     REAL,
-    BOOLEANO
+    BOOLEANO,
+    ERROR
 }
 
 enum TipoES{
