@@ -1,6 +1,4 @@
-import com.sun.org.apache.bcel.internal.generic.SWITCH;
 import java.io.*;
-import java.lang.*;
 import java.util.*;
 
 /**
@@ -211,13 +209,13 @@ class Informacion {
 	//Nombre del identificador
     String nombre;
 	//Tipo del identificador
-    TipoF tipo;
+    Tipo tipo; //TipoF
 	//Valor
     Object valor;
 	//Estatus de declaracion: 0 normal, 1 Doble Declaracion, 2 No Declarada
-	int status;
+    int status;
     
-    public Informacion(String n, TipoF t, Object v, int i){
+    public Informacion(String n, Tipo t, Object v, int i){
         this.nombre = n;
         this.tipo = t;
 		this.valor = v;   
@@ -226,7 +224,7 @@ class Informacion {
     public String getNombre() {
         return nombre;
     }
-    public TipoF getTipo() {
+    public Tipo getTipo() {
         return tipo;
     }
     public Object getValor() {
@@ -235,7 +233,7 @@ class Informacion {
 	public int getStatus() {
         return status;
     }	
-	public void setTipo(TipoF tipo) {
+	public void setTipo(Tipo tipo) {
 		this.tipo = tipo;
 	}	
     public void setValor(Object valor) {
@@ -277,5 +275,34 @@ class Booleano{
     }    
     public String toString() {
         return (this.b)?"cierto":"falso";
+    }
+}
+
+class DVariable{
+    private TablaSim ts;
+    private List<Tipo> lt;
+    
+    public DVariable(TablaSim t, List<Tipo> ls){
+        this.ts = t;
+        this.lt = ls;
+    }
+    
+    public DVariable(){
+        this.ts = new TablaSim(null);
+        this.lt = new LinkedList<Tipo>();
+    }
+    
+    public void add(Tipo t, String str){
+        int k = (this.ts.isDefinedLocally(str)) ? 1 : 0;
+        this.ts.add(str, new Informacion(str, t, null, k));
+        if( k==0 ) this.lt.add(t);
+    }
+    
+    public TablaSim getTS(){
+        return this.ts;
+    }
+    
+    public List<Tipo> getLT(){
+        return this.lt;
     }
 }
