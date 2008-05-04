@@ -282,13 +282,13 @@ todo 	::= ENTRADA
 		|	REAL
 		;
 
-tipo    ::= DECLENTERO:t    {: RESULT = new TBasico(TipoB.ENTERO); :}
-        |   DECLREAL:t      {: RESULT = new TBasico(TipoB.REAL); :}
-        |   DECLBOOL:t      {: RESULT = new TBasico(TipoB.BOOLEANO); :}
+tipo    ::= DECLENTERO:t    {: RESULT = new TBasico(TipoF.INT); :}
+        |   DECLREAL:t      {: RESULT = new TBasico(TipoF.FLOAT); :}
+        |   DECLBOOL:t      {: RESULT = new TBasico(TipoF.BOOL); :}
         |   ACORCH CCORCH tipo:t               {: RESULT = new TArreglo(t); :}
         |   TIPODATO LVar:dv FINT              
                 {: RESULT = new TRegistro(dv.getTS()); :}   
-        |   TIPODATO LVar:ts COMA CASO tipo:t ID:i ES lDiscr:hm FINT 
+        |   TIPODATO LVar:dv COMA CASO tipo:t ID:i ES lDiscr:hm FINT 
                 {: 
                     dv.add(t,i.text);
                     RESULT = new TVariante(dv.getTS(),i.text, (HashMap<Object,TablaSim>)hm); 
@@ -305,7 +305,7 @@ lDiscr	::= lDiscr:hm fact:f APARENT LVar:dv CPARENT
                 :}
         |   fact:f APARENT LVar:dv CPARENT
                 {:
-                    HashMap<Object,TablaSim> hm = new HashMap<String,TablaSim>();
+                    HashMap<Object,TablaSim> hm = new HashMap<Object,TablaSim>();
                     hm.put(f,dv.getTS());
                     RESULT = hm;
                 :}
