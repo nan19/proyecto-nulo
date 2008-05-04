@@ -25,9 +25,9 @@ public abstract class Tipo {
 }
 
 class TBasico extends Tipo{
-    private TipoB tipo;
+    private TipoF tipo;
     
-    public TBasico(TipoB t){
+    public TBasico(TipoF t){
         this.tipo = t;
     }
 }

@@ -48,13 +48,13 @@ class Bloque{
     }   
     
     public String imprimir(int i) {
-    Inst in;
-    String acum = "";
-            for(int j=0; j<this.inst.size(); j++){
-        in = this.inst.get(j);
-                    if (in!=null) {				
-                            acum+= in.imprimir(i+1);            
-                    }
+        Inst in;
+        String acum = "";
+                for(int j=0; j<this.inst.size(); j++){
+            in = this.inst.get(j);
+                        if (in!=null) {				
+                                acum+= in.imprimir(i+1);            
+                        }
     }      
     return acum;
     }
@@ -221,6 +221,14 @@ class Informacion {
 		this.valor = v;   
         this.status = i;   
     }
+    
+    public Informacion(String n, TipoF t, Object v, int i){
+        this.nombre = n;
+        this.tipo = new TBasico(t);
+		this.valor = v;   
+        this.status = i;   
+    }
+    
     public String getNombre() {
         return nombre;
     }
@@ -236,6 +244,10 @@ class Informacion {
 	public void setTipo(Tipo tipo) {
 		this.tipo = tipo;
 	}	
+        
+    public void setTipo(TipoF tipo) {
+        this.tipo = new TBasico(tipo);
+    }	
     public void setValor(Object valor) {
         this.valor = valor;
     }	
