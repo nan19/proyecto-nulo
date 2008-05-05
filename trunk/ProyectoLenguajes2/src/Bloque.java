@@ -21,7 +21,7 @@ import java.util.*;
  * Clase que envuelve a la lista de instrucciones y la tabla de simbolos del
  * programa
  */
-class Bloque{
+public class Bloque{
     
     //Lista de Instrucciones
     private List<Inst> inst;        
