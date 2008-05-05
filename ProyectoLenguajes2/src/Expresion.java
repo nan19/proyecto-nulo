@@ -95,7 +95,7 @@ abstract class Expresion {
 	*/
     public abstract String imprimir(int i);    
     public abstract boolean esCorrecta(Bloque c, int line);    
-    public abstract TipoF getTipo(Bloque c);    
+    public abstract Tipo getTipo(Bloque c);    
     void showError(String e, String tipoEsperado, String tipoHallado){
         String error = "Error de tipo en la expresion"+e+" se esperaba ";
         error += tipoEsperado+" y se hallo "+tipoHallado;
@@ -139,7 +139,9 @@ class ExprBin extends Expresion {
 		s += "-" + ExprDer.imprimir(i+1);
 		return s;
     }
-    public TipoF getTipo(Bloque c) {
+    public Tipo getTipo(Bloque c) {
+        return new TBasico(TipoF.ERROR);
+        /*
         switch(this.Op){
             case AND:
             case OR:
@@ -216,7 +218,8 @@ class ExprBin extends Expresion {
 			default: 
 				return TipoF.ERROR;
             
-        }       
+        } 
+         */      
     }    
     public boolean esCorrecta(Bloque c, int line) {
         if ( (this.getTipo(c)).equals(TipoF.ERROR) ) {			
@@ -260,7 +263,9 @@ class ExprUna extends Expresion {
 		else
 			return true;
     }
-    public TipoF getTipo(Bloque c) {
+    public Tipo getTipo(Bloque c) {
+        return new TBasico(TipoF.ERROR);
+        /*
         switch (this.Op){
             case PISO:
             case REDONDEO:
@@ -286,6 +291,7 @@ class ExprUna extends Expresion {
 			default: 
 				return TipoF.ERROR;
         }
+        */
     }
 }
 
@@ -314,7 +320,7 @@ class Factor extends Expresion {
 	public String imprimir(int i){
         return valor.toString()+"\n";
     }	
-    public boolean esCorrecta(Bloque c, int line) {       
+    public boolean esCorrecta(Bloque c, int line) {      
         if(this.tipo == tipo.ID && !c.estaDefinida((String)this.valor)){
             System.out.println("ERROR (linea "+line+") Variable '"+
 			((String)this.valor) + "' no ha sido definida.");
@@ -326,12 +332,16 @@ class Factor extends Expresion {
             return true;            
         }
     }
-    public TipoF getTipo(Bloque c) {
-		if (this.tipo.equals(TipoF.ID)) {
-			return c.getTS().get((String)this.valor).tipo;
-		} else 		
-			return this.tipo;        
-    }
+    public Tipo getTipo(Bloque c) {
+        return new TBasico(TipoF.ERROR);
+        /*
+        if (this.tipo.equals(TipoF.ID)) {
+                return c.getTS().get((String)this.valor).tipo;
+        } else 		
+                return this.tipo;        
+         */
+        }
+        
 }
 
 class Arreglo extends Expresion {
@@ -362,7 +372,8 @@ class Arreglo extends Expresion {
     public boolean esCorrecta(Bloque c, int line) {                      
             return true;        
     }
-    public TipoF getTipo(Bloque c) {
-		return this.tipo;        
+    public Tipo getTipo(Bloque c) {
+        return new TBasico(TipoF.ERROR);
+		//return this.tipo;        
     }
 }

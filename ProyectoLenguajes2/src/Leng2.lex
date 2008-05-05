@@ -95,6 +95,9 @@ ESPACIO=([\ \n\r\t\f])+
 <YYINITIAL> "finp" { 
   return new Symbol(sym.FINPROC, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
+<YYINITIAL> "fint" { 
+  return new Symbol(sym.FINT, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
 <YYINITIAL> "func" { 
   return new Symbol(sym.FUNC, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }

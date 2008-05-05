@@ -35,7 +35,7 @@ abstract class Inst {
 class Decl extends Inst {
         
     //Nombre del tipo de la variable declarada
-    private TipoF Tipo;    
+    private Tipo Tipo;    
     //Nombre de la variable declarada
     private String Var;
     
@@ -43,7 +43,7 @@ class Decl extends Inst {
 	* @param t Tipo de la variable declarada
 	* @param v Nombre de la variable declarada
 	*/
-    public Decl(TipoF t, String v) {
+    public Decl(Tipo t, String v) {
         this.Tipo = t;
         this.Var = v;
     }
@@ -102,6 +102,8 @@ class InstAsig extends Inst {
         return Variable + " := " + E.toString() + ";";
     }		
     public boolean esCorrecta(Bloque c, Informacion info, int linea) {
+        return true;
+        /*
 		boolean ok = true;
 		//Chequeo de variable definida.
         if(!c.estaDefinida(this.Variable)){
@@ -110,8 +112,8 @@ class InstAsig extends Inst {
 			c.getTS().add(this.Variable ,info);
             ok = false;
         }
-		TipoF tipoE = this.E.getTipo(c);
-		TipoF tipoV = c.getTS().get(this.Variable).tipo;
+		Tipo tipoE = this.E.getTipo(c);
+		Tipo tipoV = c.getTS().get(this.Variable).tipo;
 		//chequeo de la expresion.
 		if (tipoE.equals(TipoF.ERROR)) {
 			System.out.println("ERROR (linea "+linea+") Error de tipo en la expresion "+this.E+".");
@@ -131,7 +133,8 @@ class InstAsig extends Inst {
 				ok = false;
 			}
 		}
-		return ok;        		
+		return ok;  
+         */      		
     }
 }
 
