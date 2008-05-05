@@ -48,7 +48,7 @@ public class Prueba {
         Symbol r = null;
 
 	try {
-            //r = pre.parse();
+            r = pre.parse();
 	    root = P.parse(); 	    
             
 	} catch (Exception ex){
