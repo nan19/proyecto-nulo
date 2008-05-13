@@ -72,8 +72,7 @@ class Decl extends Inst {
 class InstAsig extends Inst {
     
     //Nombre de la variable a la que se realiza la asignacion
-    private String Variable;
-    
+    private LValue Variable;    
     //Expresion que se le asigna a la variable
     private Expresion E;
     
@@ -82,7 +81,7 @@ class InstAsig extends Inst {
 	* @param v identificador de la variable a ser asignada
 	* @param e expresion a asignar a la variable
 	*/
-    public InstAsig (String v, Expresion e) {
+    public InstAsig (LValue v, Expresion e) {
         this.Variable = v;
         this.E = e;
     }
@@ -100,39 +99,37 @@ class InstAsig extends Inst {
         return Variable + " := " + E.toString() + ";";
     }		
     public boolean esCorrecta(Bloque c, Informacion info, int linea) {
-        return true;
-        /*
-		boolean ok = true;
+       	boolean ok = true;
 		//Chequeo de variable definida.
-        if(!c.estaDefinida(this.Variable)){
-			System.out.println("ERROR (linea "+linea+") Variable '"+this.Variable +"' no ha sido definida.");
+		String var = this.Variable.obtenerId();
+        if(!c.estaDefinida(var)){
+			System.out.println("ERROR (linea "+linea+") Variable '"+var +"' no ha sido definida.");
 			info.setTipo(TipoF.NODEF);
-			c.getTS().add(this.Variable ,info);
+			c.getTS().add(var,info);
             ok = false;
         }
-		Tipo tipoE = this.E.getTipo(c);
-		Tipo tipoV = c.getTS().get(this.Variable).tipo;
+		Tipo tipoE = this.E.getTipo(c);		
+		Tipo tipoV = c.getTS().get(var).tipo;
 		//chequeo de la expresion.
 		if (tipoE.equals(TipoF.ERROR)) {
 			System.out.println("ERROR (linea "+linea+") Error de tipo en la expresion "+this.E+".");
 			ok = false;
 		}
 		//chequeo de compatibilidad entre la expresion y la variable
-		if (!tipoV.equals(TipoF.NODEF)) {
-			if (tipoV.equals(TipoF.FLOAT)) {
-				if ( !(tipoE.equals(TipoF.FLOAT) || tipoE.equals(TipoF.INT)) ) {
+		if (!((TBasico)tipoV).tipo.equals(TipoF.NODEF)) {
+			if (((TBasico)tipoV).tipo.equals(TipoF.FLOAT)) {
+				if ( !(((TBasico)tipoE).tipo.equals(TipoF.FLOAT) || ((TBasico)tipoE).tipo.equals(TipoF.INT)) ) {
 					System.out.println("ERROR (linea "+linea+") La Asignacion a la variable '"+this.Variable+
 						"' no es posible. Los tipos no son compatibles.");
 					ok = false;
 				}
-			} else if (!(tipoV.equals(tipoE))) {
-				System.out.println("ERROR (linea "+linea+") La Asignacion a la variable '"+this.Variable+
+			} else if (!(((TBasico)tipoV).tipo.equals(((TBasico)tipoE).tipo))) {
+				System.out.println("ERROR (linea "+linea+") La Asignacion a la variable '"+var+
 						"' no es posible. Los tipos no son compatibles.");
 				ok = false;
 			}
 		}
-		return ok;  
-         */      		
+		return ok;  	
     }
 }
 

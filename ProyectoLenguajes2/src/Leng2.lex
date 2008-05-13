@@ -133,8 +133,11 @@ ESPACIO=([\ \n\r\t\f])+
 <YYINITIAL> "booleano" { 
   return new Symbol(sym.DECLBOOL, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
-<YYINITIAL> "tipo" { 
+<YYINITIAL> "registro" { 
   return new Symbol(sym.TIPODATO, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
+<YYINITIAL> "finr" { 
+  return new Symbol(sym.FINTIPODATO, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
 <YYINITIAL> "caso" { 
   return new Symbol(sym.CASO, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 

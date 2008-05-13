@@ -81,7 +81,7 @@ enum OperadorU {
  * Enumeracion que contiene los posibles tipos de los Factores
  * @see Factor
  */
-enum TipoF {INT,INTtoFLOAT,FLOAT,ID,BOOL,PROC,FUNC,VOID,ARRAY,REG,VAR,ERROR,NODEF}
+enum TipoF {INT,INTtoFLOAT,FLOAT,ID,BOOL,PROC,FUNC,VOID,LVAL,ARRAY,ERROR,NODEF}
 
 /**
  * Clase abstracta que sirve como Superclase para los diversos tipos de 
@@ -140,87 +140,91 @@ class ExprBin extends Expresion {
 		return s;
     }
     public Tipo getTipo(Bloque c) {
-        return new TBasico(TipoF.ERROR);
-        /*
+        //return new TBasico(TipoF.ERROR);
+        Tipo b = new TBasico(TipoF.BOOL);
+		Tipo i = new TBasico(TipoF.INT);
+		Tipo f = new TBasico(TipoF.FLOAT);
+		
         switch(this.Op){
             case AND:
-            case OR:
-				if (this.ExprDer.getTipo(c).equals(TipoF.BOOL) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.BOOL)) {
-					return TipoF.BOOL;
-				} else {
-					return TipoF.ERROR;
+            case OR:				
+				if (this.ExprDer.getTipo(c).equals(b) && 
+						this.ExprIzq.getTipo(c).equals(b)) {
+					return new TBasico(TipoF.BOOL);
+				} else {					
+					return new TBasico(TipoF.ERROR);
 				}
             case IGUAL:
-            case DESIGUAL:
-				if ( (this.ExprDer.getTipo(c).equals(TipoF.INT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.INT)) ||
-					(this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
-					(this.ExprDer.getTipo(c).equals(TipoF.INT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
-					(this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.INT)) ||
-					(this.ExprDer.getTipo(c).equals(TipoF.BOOL) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.BOOL)) )
-					return TipoF.BOOL;					
+            case DESIGUAL:				
+				if ( (this.ExprDer.getTipo(c).equals(i) && 
+						this.ExprIzq.getTipo(c).equals(i)) ||
+					(this.ExprDer.getTipo(c).equals(f) && 
+						this.ExprIzq.getTipo(c).equals(f)) ||
+					(this.ExprDer.getTipo(c).equals(i) && 
+						this.ExprIzq.getTipo(c).equals(f)) ||
+					(this.ExprDer.getTipo(c).equals(f) && 
+						this.ExprIzq.getTipo(c).equals(i)) ||
+					(this.ExprDer.getTipo(c).equals(b) && 
+						this.ExprIzq.getTipo(c).equals(b)) )
+					return new TBasico(TipoF.BOOL);
 				else
-					return TipoF.ERROR;				
+					return new TBasico(TipoF.ERROR);
             case MAYOR:
             case MENOR:
             case MAYORIGUAL:
             case MENORIGUAL:
-                if ( (this.ExprDer.getTipo(c).equals(TipoF.INT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.INT)) ||
-					(this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
-					(this.ExprDer.getTipo(c).equals(TipoF.INT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
-					(this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.INT)) )
-					return TipoF.BOOL;					
+                if ( (this.ExprDer.getTipo(c).equals(i) && 
+						this.ExprIzq.getTipo(c).equals(i)) ||
+					(this.ExprDer.getTipo(c).equals(f) && 
+						this.ExprIzq.getTipo(c).equals(f)) ||
+					(this.ExprDer.getTipo(c).equals(i) && 
+						this.ExprIzq.getTipo(c).equals(f)) ||
+					(this.ExprDer.getTipo(c).equals(f) && 
+						this.ExprIzq.getTipo(c).equals(i)) )
+					return new TBasico(TipoF.BOOL);
 				else
-					return TipoF.ERROR;
+					return new TBasico(TipoF.ERROR);
             case MOD:
-            case DIVE:
-                if (this.ExprDer.getTipo(c).equals(TipoF.INT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.INT))
-					return TipoF.INT;
-				else
-					return TipoF.ERROR;
+            case DIVE:			
+                if (((TBasico)(this.ExprDer.getTipo(c))).tipo.equals(TipoF.INT) && 
+						((TBasico)(this.ExprIzq.getTipo(c))).tipo.equals(TipoF.INT))
+					return new TBasico(TipoF.INT);
+				else					
+					return new TBasico(TipoF.ERROR);
             case DIVR:
-				if ( (this.ExprDer.getTipo(c).equals(TipoF.INT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.INT)) ||
-					(this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
-					(this.ExprDer.getTipo(c).equals(TipoF.INT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
-					(this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.INT)) )
-					return TipoF.FLOAT;
-				else 
-					return TipoF.ERROR;
+				if ( (this.ExprDer.getTipo(c).equals(i) && 
+						this.ExprIzq.getTipo(c).equals(i)) ||
+					(this.ExprDer.getTipo(c).equals(f) && 
+						this.ExprIzq.getTipo(c).equals(f)) ||
+					(this.ExprDer.getTipo(c).equals(i) && 
+						this.ExprIzq.getTipo(c).equals(f)) ||
+					(this.ExprDer.getTipo(c).equals(f) && 
+						this.ExprIzq.getTipo(c).equals(i)) )
+					return new TBasico(TipoF.FLOAT);
+				else
+					return new TBasico(TipoF.ERROR);
             case SUMA:
             case RESTA:
             case MULT:
-                if (this.ExprDer.getTipo(c).equals(TipoF.INT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.INT))
-					return TipoF.INT;
-				else if ( (this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && 
-							this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
-					(this.ExprDer.getTipo(c).equals(TipoF.INT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.FLOAT)) ||
-					(this.ExprDer.getTipo(c).equals(TipoF.FLOAT) && 
-						this.ExprIzq.getTipo(c).equals(TipoF.INT)) )
-					return TipoF.FLOAT;
-				else 
-					return TipoF.ERROR;
+                if (((TBasico)(this.ExprDer.getTipo(c))).tipo.equals(TipoF.INT) && 
+						((TBasico)(this.ExprIzq.getTipo(c))).tipo.equals(TipoF.INT))
+					return new TBasico(TipoF.INT);
+				else if ( (((TBasico)(this.ExprDer.getTipo(c))).tipo.equals(TipoF.FLOAT) && 
+							((TBasico)(this.ExprIzq.getTipo(c))).tipo.equals(TipoF.FLOAT)) ||
+					(((TBasico)(this.ExprDer.getTipo(c))).tipo.equals(TipoF.INT) && 
+						((TBasico)(this.ExprIzq.getTipo(c))).tipo.equals(TipoF.FLOAT)) ||
+					(((TBasico)(this.ExprDer.getTipo(c))).tipo.equals(TipoF.FLOAT) && 
+						((TBasico)(this.ExprIzq.getTipo(c))).tipo.equals(TipoF.INT)) )
+					return new TBasico(TipoF.FLOAT);
+				else
+					return new TBasico(TipoF.ERROR);
+					
 			default: 
-				return TipoF.ERROR;
-            
-        } 
-         */      
+				return new TBasico(TipoF.ERROR);
+           
+        }         
     }    
+	
     public boolean esCorrecta(Bloque c, int line) {
         if ( (this.getTipo(c)).equals(TipoF.ERROR) ) {			
 			return false;
@@ -255,7 +259,7 @@ class ExprUna extends Expresion {
         return "" + Op + E;
     }	
 	public String imprimir(int i){
-        return "" + Op + E;
+        return "" + "("+ Op + ")" + E + "\n";
     }    
     public boolean esCorrecta(Bloque c, int line) {        
         if (this.getTipo(c).equals(TipoF.ERROR))
@@ -320,30 +324,81 @@ class Factor extends Expresion {
 	public String imprimir(int i){
         return valor.toString()+"\n";
     }	
-    public boolean esCorrecta(Bloque c, int line) {      
-        if(this.tipo == tipo.ID && !c.estaDefinida((String)this.valor)){
-            System.out.println("ERROR (linea "+line+") Variable '"+
-			((String)this.valor) + "' no ha sido definida.");
-			Informacion info = 
-				new Informacion((String)this.valor,TipoF.ID,null,2);
-			c.getTS().add((String)this.valor, info);
-            return false;
-        }else{           
-            return true;            
-        }
+    public boolean esCorrecta(Bloque c, int line) {    
+		if ((this.tipo).equals(TipoF.LVAL)) {
+			return true;
+		}
+		else {
+	        if(this.tipo == tipo.ID && !c.estaDefinida((String)this.valor)){
+	            System.out.println("ERROR (linea "+line+") Variable '"+
+				((String)this.valor) + "' no ha sido definida.");
+				Informacion info = 
+					new Informacion((String)this.valor,TipoF.ID,null,2);
+				c.getTS().add((String)this.valor, info);
+	            return false;
+	        }else{           
+	            return true;            
+	        }
+		}
     }
-    public Tipo getTipo(Bloque c) {
-        return new TBasico(TipoF.ERROR);
-        /*
-        if (this.tipo.equals(TipoF.ID)) {
-                return c.getTS().get((String)this.valor).tipo;
-        } else 		
-                return this.tipo;        
-         */
+    public Tipo getTipo(Bloque c) {      
+        if (this.tipo.equals(TipoF.ID)) {			
+            return c.getTS().get((String)this.valor).tipo;
+        } else 					
+			return new TBasico(this.tipo);
+       
         }
         
 }
 
+abstract class LValue {
+	public abstract String toString();
+	public abstract String obtenerId();
+}
+class ElemArreglo extends LValue {
+	private LValue arreglo;
+	private Expresion indice;
+	
+	public ElemArreglo (LValue a, Expresion i) {
+		this.arreglo = a;
+		this.indice = i;
+	}
+	public String toString() {
+		return "" + arreglo + "[" + indice + "]";
+	}	
+	public String obtenerId() {
+		return (this.arreglo).obtenerId();
+	}
+}
+class CampoRegistro extends LValue {
+	private LValue registro;
+	private String campo;
+	private Tipo tipoCampo;	
+	
+	public CampoRegistro (LValue r, String c) {
+		this.registro = r;
+		this.campo = c;		
+	}
+	public String toString() {
+		return "" + registro + "." + campo;
+	}
+	public String obtenerId() {
+		return (this.registro).obtenerId();
+	}
+}
+class Identificador extends LValue {
+	private String id;	
+	public Identificador (String id) {
+		this.id = id;
+	}
+	public String toString() {
+		return this.id;
+	}
+	public String obtenerId() {
+		return this.id;
+	}
+}
+/*
 class Arreglo extends Expresion {
       
     //Tipo del arreglo
@@ -352,12 +407,12 @@ class Arreglo extends Expresion {
 	private int tam;
 	//Lista de Elementos
     private LinkedList<Expresion> listaElem;
-	    
+*/	    
     /**
 	* Constructor de Expresiones Atomicas
 	* @param t tipo de la Expresion
 	* @param v valor de la Expresion
-	*/
+	*//*
     public Arreglo (TipoF t, int tam, LinkedList<Expresion> listaElem){
         this.tipo = t;
         this.tam = tam; 
@@ -376,4 +431,4 @@ class Arreglo extends Expresion {
         return new TBasico(TipoF.ERROR);
 		//return this.tipo;        
     }
-}
+}*/
