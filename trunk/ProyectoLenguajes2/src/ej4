@@ -1,21 +1,12 @@
 comienzo
-entero a := 3;			
-booleano y := (1-2)> (5*-4)+3 | cierto & ((3*1)=2);		
-entero b;
+entero a := 3;				
+entero b := 1+3-a[4]+a.b;	
 real b;
-si ( a > 0 )	
-	
-	a := a+1;	
-	si ( a > 3 )
-		a:=0;
-	fins
-sino
-	
-	b := 10;		
-fins
-entero b;
+[] entero ar;
 
-hacer ( (a<b)&cierto )	
+a.b[2].c := 1;
+hacer ( (a<b) & falso )	
 	b := b - 2;		
-finh		
+finh	
+	
 fin

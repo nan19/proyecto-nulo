@@ -41,6 +41,8 @@ terminal TokenValue DECLENTERO;
 terminal TokenValue DECLREAL;
 terminal TokenValue DECLBOOL;
 terminal TokenValue TIPODATO;
+terminal TokenValue FINTIPODATO;
+terminal TokenValue FINT;
 terminal TokenValue CASO;
 terminal TokenValue ES;
 terminal TokenValue APARENT;
@@ -76,7 +78,7 @@ terminal TokenValue FINHACER;
 terminal TokenValue PYCOMA;
 terminal TokenValue CIERTO;
 terminal TokenValue FALSO;
-terminal TokenValue FINT;		
+		
 terminal Integer ENTERO;
 terminal TokenValue ID;
 terminal Float REAL;
@@ -280,6 +282,8 @@ todo 	::= ENTRADA
 		|	ENTERO
 		|	ID
 		|	REAL
+		|	FINTIPODATO
+		|	FINT
 		;
 
 tipo    ::= DECLENTERO:t    {: RESULT = new TBasico(TipoF.INT); :}

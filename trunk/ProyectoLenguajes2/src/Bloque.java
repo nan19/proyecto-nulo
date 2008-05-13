@@ -134,7 +134,12 @@ class TablaSim{
     private HashMap<String,Informacion> tabla;
     private TablaSim parent;
     
-    public TablaSim(TablaSim p){
+    public TablaSim(){
+		this.parent = null;
+		this.tabla = new HashMap<String,Informacion>();
+	}
+    
+	public TablaSim(TablaSim p){
         this.parent = p;
         this.tabla = new HashMap<String,Informacion>();
     }    

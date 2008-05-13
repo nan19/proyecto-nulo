@@ -25,10 +25,13 @@ public abstract class Tipo {
 }
 
 class TBasico extends Tipo{
-    private TipoF tipo;
+    public TipoF tipo;
     
     public TBasico(TipoF t){
         this.tipo = t;
+    }
+	public String toString(){
+        return "" + this.tipo;
     }
 }
 
@@ -38,6 +41,9 @@ class TArreglo extends Tipo{
     public TArreglo(Tipo t){
         this.tipo = t;
     }
+	public String toString(){
+        return "Arreglo de "+this.tipo;
+    }
 }
 
 
@@ -46,6 +52,9 @@ class TRegistro extends Tipo{
     
     public TRegistro(TablaSim ts){
         this.tabla = ts;
+    }
+	public String toString(){
+        return "Registro";
     }
 }
 
@@ -59,7 +68,9 @@ class TVariante extends Tipo{
         this.discr = dr;
         this.disc = d;
     }
-    
+	public String toString(){
+        return "Variante";
+    }    
 }
 enum TipoB{
     ENTERO,
