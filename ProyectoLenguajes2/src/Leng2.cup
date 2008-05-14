@@ -398,7 +398,7 @@ tipo    ::= tipoB:t
 
 /* Tipos Basicos */
 tipoB   ::= DECLENTERO:t    {: RESULT = TipoF.INT; :}
-        |   DECLREAL:t      {: RESULT = TipoF.FLOAT; :}
+        |   DECLREAL:t      {: RESULT = TipoF.FLOAT;  :}
         |   DECLBOOL:t      {: RESULT = TipoF.BOOL; :} 
         ;
 
