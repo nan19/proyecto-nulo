@@ -14,6 +14,12 @@ import java.util.HashMap;
  * Tipo.java: clase Tipo
  * 
  */
+ 
+ /**
+ * Enumeracion que contiene los posibles tipos de los Factores
+ * @see Factor
+ */
+enum TipoF {INT,INTtoFLOAT,FLOAT,ID,BOOL,PROC,FUNC,VOID,LVAL,ARRAY,ERROR,NODEF}
 
 /**
  *

@@ -78,12 +78,6 @@ enum OperadorU {
 }
 
 /**
- * Enumeracion que contiene los posibles tipos de los Factores
- * @see Factor
- */
-enum TipoF {INT,INTtoFLOAT,FLOAT,ID,BOOL,PROC,FUNC,VOID,LVAL,ARRAY,ERROR,NODEF}
-
-/**
  * Clase abstracta que sirve como Superclase para los diversos tipos de 
  * expresiones del lenguaje
  */
