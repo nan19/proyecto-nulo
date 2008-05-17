@@ -289,7 +289,7 @@ todo 	::= ENTRADA
 tipo    ::= DECLENTERO:t    {: RESULT = new TBasico(TipoF.INT); :}
         |   DECLREAL:t      {: RESULT = new TBasico(TipoF.FLOAT); :}
         |   DECLBOOL:t      {: RESULT = new TBasico(TipoF.BOOL); :}
-        |   ACORCH CCORCH tipo:t               {: RESULT = new TArreglo(t); :}
+        |   ACORCH CCORCH tipo:t               {: RESULT = new TArreglo(t,-1); :}
         |   TIPODATO LVar:dv FINT              
                 {: RESULT = new TRegistro(dv.getTS()); :}   
         |   TIPODATO LVar:dv COMA CASO tipo:t ID:i ES lDiscr:hm FINT 

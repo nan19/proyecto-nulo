@@ -1,3 +1,6 @@
+
+import java.util.Collection;
+
 /*
  * Misc.java
  *
@@ -17,4 +20,11 @@ public class Misc {
     public static Bloque acumulador;
     java.util.List l;
     
+    public static int max(Collection<TablaSim> c){
+        int total = 0;
+        while(c.iterator().hasNext()){
+            total = Math.max(total, c.iterator().next().getSize());
+        }
+        return total;
+    }
 }

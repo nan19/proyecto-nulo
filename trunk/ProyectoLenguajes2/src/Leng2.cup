@@ -136,9 +136,9 @@ inicio	::= lSubProgs COMIENZO bloq:b FIN
 		:}
 		;
 lSubProgs::= lSubProgs SubProg
-		|	SubProg
-		|
-		;
+            |	SubProg
+            |
+            ;
 /** Definicion de un Bloque */
 bloq    ::= inicB lInst finB:b {: RESULT = b; :}
         ;
@@ -356,7 +356,7 @@ fact	::= APARENT expr:e CPARENT
 		{: RESULT= new Factor(TipoF.BOOL, new Booleano(true)); :}
         |   FALSO:c 
 		{: RESULT= new Factor(TipoF.BOOL, new Booleano(false)); :}		
-		|	arreglo:l
+        |   arreglo:l
 		{: RESULT = new Arreglo(TipoF.ARRAY, 0, l); :}
         ;
 
@@ -388,10 +388,10 @@ LParam	::=	LParam:l COMA expr:e
 /** Tipos de Datos */		
 tipo    ::= tipoB:t     
 			{: RESULT = new TBasico(t); :}
-        |   ACORCH ENTERO CCORCH tipo:t   
-			{: RESULT = new TArreglo(t); :}	//tamanio del arreglo?
+        |   ACORCH ENTERO:i CCORCH tipo:t   
+			{: RESULT = new TArreglo(t,i); :}	//tamanio del arreglo?
         |   ACORCH CCORCH tipo:t   
-			{: RESULT = new TArreglo(t); :}
+			{: RESULT = new TArreglo(t,-1); :}
         |   TIPODATO LC:ts FINTIPODATO   
 			{: RESULT = new TRegistro(ts); :}
         ;
