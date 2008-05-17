@@ -23,32 +23,103 @@ import java.util.*;
  * de cada uno de ellos.
  */
 enum OperadorB {
-    SUMA("+"), 
-    RESTA("-"), 
-    MULT("*"), 
-    DIVR("/"), 
-    DIVE("div"), 
-    MOD("mod"), 
-    AND("&"), 
-    OR("|"), 
-    IGUAL("="), 
-    DESIGUAL("!="), 
-    MAYOR(">"), 
-    MENOR("<"), 
-    MAYORIGUAL(">="), 
-    MENORIGUAL("<=");
+    SUMA("+") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    RESTA("-") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    MULT("*") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    DIVR("/") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    DIVE("div") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    MOD("mod") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    AND("&") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    OR("|") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    IGUAL("=") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    DESIGUAL("!=") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    MAYOR(">") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    MENOR("<") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    MAYORIGUAL(">=") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    MENORIGUAL("<=") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    INDICE("[]") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    }, 
+    
+    MIEMBRO(".") {
+        public TipoF getTipo(Expresion e1, Expresion e2){
+            return TipoF.ERROR;}
+    };
     
     //Variable que almacena el valor de la representacion en <b>String</b>
     private String s;
     public String toString() {
         return this.s;
-    }    
+    }
+    
+    public abstract TipoF getTipo(Expresion e1, Expresion e2);
     /**
 	* Constructor usado implicitamente para asociar cada operador con su String
 	* @param str de tipo <b>String</b> representacion del operador
 	*/
     OperadorB(String str){
         this.s = str;
+    }
+    
+    private TipoF getTipoAuxEnteroOReal(Expresion e1, Expresion e2, Bloque c){
+        return TipoF.ERROR;
     }
 }
 
@@ -110,11 +181,11 @@ class ExprBin extends Expresion {
     private Expresion ExprDer;
 
     /**
-	* Constructor de Expresiones cuyo operdaor es binario
-	* @param EI subexpresion mas hacia la izquierda
-	* @param O operador binario
-	* @param ED subexpresion mas hacia la derecha
-	*/
+    * Constructor de Expresiones cuyo operdaor es binario
+    * @param EI subexpresion mas hacia la izquierda
+    * @param O operador binario
+    * @param ED subexpresion mas hacia la derecha
+    */
     public ExprBin (Expresion EI, OperadorB O, Expresion ED) {
         this.ExprIzq = EI;
         this.Op = O;
@@ -392,7 +463,7 @@ class Identificador extends LValue {
 		return this.id;
 	}
 }
-/*
+
 class Arreglo extends Expresion {
       
     //Tipo del arreglo
@@ -401,12 +472,12 @@ class Arreglo extends Expresion {
 	private int tam;
 	//Lista de Elementos
     private LinkedList<Expresion> listaElem;
-*/	    
+	    
     /**
 	* Constructor de Expresiones Atomicas
 	* @param t tipo de la Expresion
 	* @param v valor de la Expresion
-	*//*
+	*/
     public Arreglo (TipoF t, int tam, LinkedList<Expresion> listaElem){
         this.tipo = t;
         this.tam = tam; 
@@ -425,4 +496,4 @@ class Arreglo extends Expresion {
         return new TBasico(TipoF.ERROR);
 		//return this.tipo;        
     }
-}*/
+}

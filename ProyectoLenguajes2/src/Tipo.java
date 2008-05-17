@@ -1,5 +1,6 @@
 
 import java.util.HashMap;
+import javax.swing.event.ListSelectionEvent;
 
 /**
  * Universidad Simon Bolivar
@@ -19,7 +20,36 @@ import java.util.HashMap;
  * Enumeracion que contiene los posibles tipos de los Factores
  * @see Factor
  */
-enum TipoF {INT,INTtoFLOAT,FLOAT,ID,BOOL,PROC,FUNC,VOID,LVAL,ARRAY,ERROR,NODEF}
+enum TipoF {
+    INT(4, "entero"),
+    INTtoFLOAT(0, "INTtoFloat"),
+    FLOAT(8, "real"),
+    ID(0, "identificador"),
+    BOOL(1, "booleano"),
+    PROC(0, "procedimiento"),
+    FUNC(0, "funcion"),
+    VOID(0, "VOID"),
+    LVAL(0, "LVAL"),
+    ARRAY(0, "ARRAY"),
+    ERROR(0, "ERROR"),
+    NODEF(0, "NODEF");
+    
+    private int size;
+    private String name;
+    
+    public int getSize(){
+        return this.size;
+    }
+    
+    private TipoF(int s, String n){
+        this.size = s;
+        this.name = n;
+    }
+    
+    public String toString(){
+        return "{"+this.name+", "+this.size+"}";
+    }
+}
 
 /**
  *
@@ -27,8 +57,11 @@ enum TipoF {INT,INTtoFLOAT,FLOAT,ID,BOOL,PROC,FUNC,VOID,LVAL,ARRAY,ERROR,NODEF}
  */
 public abstract class Tipo {
     
-    
+    public abstract int getSize();
+    @Override
+    public abstract String toString();
 }
+
 
 class TBasico extends Tipo{
     public TipoF tipo;
@@ -39,19 +72,32 @@ class TBasico extends Tipo{
 	public String toString(){
         return "" + this.tipo;
     }
+    @Override
+    public int getSize() {
+        return this.tipo.getSize();
+    }
+    
 }
+
 
 class TArreglo extends Tipo{
     private Tipo tipo;
+    private int size;
     
-    public TArreglo(Tipo t){
+    public TArreglo(Tipo t, int s){
         this.tipo = t;
+        this.size = s;
     }
 	public String toString(){
-        return "Arreglo de "+this.tipo;
+        return "Arreglo ["+this.size+ "]de "+this.tipo;
     }
-}
 
+    @Override
+    public int getSize() {
+        return this.size * this.tipo.getSize();
+    }
+        
+}
 
 class TRegistro extends Tipo{
     private TablaSim tabla;
@@ -60,10 +106,15 @@ class TRegistro extends Tipo{
         this.tabla = ts;
     }
 	public String toString(){
-        return "Registro";
+        return "Registro: "+this.tabla.toString()+" finr\n";
     }
-}
 
+    @Override
+    public int getSize() {
+        return this.tabla.getSize();
+    }
+        
+}
 class TVariante extends Tipo{
     private TablaSim tabla;
     private String disc;
@@ -74,9 +125,20 @@ class TVariante extends Tipo{
         this.discr = dr;
         this.disc = d;
     }
-	public String toString(){
-        return "Variante";
-    }    
+    public String toString(){
+        String aux = "";
+        while(discr.values().iterator().hasNext()){
+            aux += discr.values().iterator().next().toString()+"/n";
+        }
+        return "Variante "+this.tabla+" casos:\n"+aux+"finv\n";
+    }
+
+    @Override
+    public int getSize() {
+        int maximo = Misc.max(this.discr.values());
+        return maximo + this.tabla.getSize();
+    }
+        
 }
 enum TipoB{
     ENTERO,
@@ -99,5 +161,16 @@ class TParam extends Tipo{
         this.tipo = t;
         this.es = e;
     }
+
+    @Override
+    public int getSize() {
+        return this.tipo.getSize();
+    }
+
+    @Override
+    public String toString() {
+        return ""+ this.es + this.tipo;
+    }
+    
 }
 

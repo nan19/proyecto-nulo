@@ -1,0 +1,7 @@
+func entero ejemplo1 (entero b)
+    entero a := 1;
+finp
+
+comienzo
+    entero z := 3;
+fin

@@ -1,8 +1,8 @@
-comienzo
 
-entero a;	
-booleano b;	
-real z;
+
+//entero a;	
+//booleano b;	
+//real z;
 
 func entero chao (entero i, entero j)
 	i:=i*j;
@@ -11,7 +11,7 @@ proc hola (ent: entero i, entero j; ent-sal: entero k, real l; sal: booleano b)
 	i:= i+j;
 	k:=1;	
 finp
-
+comienzo
 z:=1;	
 a:=1+a[1]+4 mod 2 +a[3][4][5];
 a:=a.z;
@@ -22,10 +22,9 @@ arr := [[1,2],[1], 1,[1,2,[3,[5,6]]]];
 a := a[1][2];
 booleano arrr;
 
-tipo r = entero i, [1][2] entero efo;
-
-tipo id = 
-	entero nombre,
+//tipo entero i, [1][2] entero efo fint r;
+/*
+tipo 	entero nombre,
 	real edad,
 	caso casado : booleano es
 		cierto (
@@ -35,8 +34,10 @@ tipo id =
 		falso (
 			entero novia
 		)
+fint
+id
 ;
-
+*/
 //entero a;
 entero r.i := a[1][2];
 a.c := a.i;

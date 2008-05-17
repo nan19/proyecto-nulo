@@ -133,21 +133,26 @@ public class Bloque{
 class TablaSim{
     private HashMap<String,Informacion> tabla;
     private TablaSim parent;
+    private int size;
     
     public TablaSim(){
 		this.parent = null;
 		this.tabla = new HashMap<String,Informacion>();
+                this.size = 0;
 	}
     
 	public TablaSim(TablaSim p){
         this.parent = p;
         this.tabla = new HashMap<String,Informacion>();
+        this.size = 0;
     }    
     public void add(String id, Informacion i){
         this.tabla.put(id,i);
+        this.size += i.getTipo().getSize();
     }    
     public void addAll(TablaSim ts){
         this.tabla.putAll(ts.tabla);
+        this.size += ts.size;
     }	
 	public void addList(Vector v){
         Iterator i = v.iterator();
@@ -207,6 +212,9 @@ class TablaSim{
         }else{
             //error
         }
+    }
+    public int getSize(){
+        return this.size;
     }
 }
 
