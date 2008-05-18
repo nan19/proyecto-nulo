@@ -95,6 +95,9 @@ ESPACIO=([\ \n\r\t\f])+
 <YYINITIAL> "finp" { 
   return new Symbol(sym.FINPROC, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
+<YYINITIAL> "tipo" { 
+  return new Symbol(sym.TIPODATO, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+}
 <YYINITIAL> "fint" { 
   return new Symbol(sym.FINT, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
@@ -134,10 +137,10 @@ ESPACIO=([\ \n\r\t\f])+
   return new Symbol(sym.DECLBOOL, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
 <YYINITIAL> "registro" { 
-  return new Symbol(sym.TIPODATO, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+  return new Symbol(sym.REGISTRO, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
 <YYINITIAL> "finr" { 
-  return new Symbol(sym.FINTIPODATO, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
+  return new Symbol(sym.FINREG, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
 <YYINITIAL> "caso" { 
   return new Symbol(sym.CASO, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 

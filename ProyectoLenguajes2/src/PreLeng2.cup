@@ -41,8 +41,9 @@ terminal TokenValue DECLENTERO;
 terminal TokenValue DECLREAL;
 terminal TokenValue DECLBOOL;
 terminal TokenValue TIPODATO;
-terminal TokenValue FINTIPODATO;
 terminal TokenValue FINT;
+terminal TokenValue REGISTRO;
+terminal TokenValue FINREG;
 terminal TokenValue CASO;
 terminal TokenValue ES;
 terminal TokenValue APARENT;
@@ -88,6 +89,8 @@ terminal Float REAL;
  */
 non terminal inicio;
 non terminal Tipo tipo;
+non terminal TipoF tipoB;
+non terminal TablaSim LC;
 non terminal SubProgs;
 non terminal SubProg;
 non terminal Proc;
@@ -116,16 +119,12 @@ precedence left POR, ENTRE, DIV, MOD;
 /**
  * Gramatica del lenguaje.
  */
-inicio	::= inicializar SubProgs loquesea
+inicio	::= inicializar COMIENZO loquesea FIN
         ;
 
 inicializar ::= {: Misc.acumulador = new Bloque(); bloque = Misc.acumulador; :}
             ;
 
-SubProgs::= SubProgs SubProg
-        |   SubProg
-        |	
-        ;
 SubProg	::=	Proc
         |	Func
         ;
@@ -234,16 +233,14 @@ loquesea ::= loquesea todo
             |   todo
             ;
 
-todo 	::= ENTRADA
+todo 	::= SubProg
+		|	ENTRADA
 		|	ENTSAL
 		|	SALIDA
 		|	DOSPUNTOS
-		|	COMIENZO
-		|	FIN
 		|	DECLENTERO
 		|	DECLREAL
 		|	DECLBOOL
-		|	TIPODATO
 		|	CASO
 		|	ES
 		|	APARENT
@@ -282,42 +279,41 @@ todo 	::= ENTRADA
 		|	ENTERO
 		|	ID
 		|	REAL
-		|	FINTIPODATO
-		|	FINT
+		|	REGISTRO
+		|	FINREG
+		|	TIPODATO ID IGUAL tipo FINT
 		;
 
-tipo    ::= DECLENTERO:t    {: RESULT = new TBasico(TipoF.INT); :}
-        |   DECLREAL:t      {: RESULT = new TBasico(TipoF.FLOAT); :}
-        |   DECLBOOL:t      {: RESULT = new TBasico(TipoF.BOOL); :}
-        |   ACORCH CCORCH tipo:t               {: RESULT = new TArreglo(t,-1); :}
-        |   TIPODATO LVar:dv FINT              
-                {: RESULT = new TRegistro(dv.getTS()); :}   
-        |   TIPODATO LVar:dv COMA CASO tipo:t ID:i ES lDiscr:hm FINT 
-                {: 
-                    dv.add(t,i.text);
-                    RESULT = new TVariante(dv.getTS(),i.text, (HashMap<Object,TablaSim>)hm); 
-                :}
+/** Tipos de Datos */		
+tipo    ::= tipoB:t     
+			{: RESULT = new TBasico(t); :}
+        |   ACORCH ENTERO:i CCORCH tipo:t   
+			{: RESULT = new TArreglo(t,i); :}	//tamanio del arreglo?
+        |   ACORCH CCORCH tipo:t   
+			{: RESULT = new TArreglo(t,-1); :}
+        |   REGISTRO LC:ts FINREG
+			{: RESULT = new TRegistro(ts); :}
+		|	ID:i
+			{: //chequear en TS y obtener arbol de tipo
+			
+			:}
         ;
 
-/** Definicion de un caso del discriminante */
-lDiscr	::= lDiscr:hm fact:f APARENT LVar:dv CPARENT
-                {: 
-                    if(!hm.containsKey(f)){
-                        hm.put(f,dv.getTS());
-                    }
-                    RESULT = hm;
-                :}
-        |   fact:f APARENT LVar:dv CPARENT
-                {:
-                    HashMap<Object,TablaSim> hm = new HashMap<Object,TablaSim>();
-                    hm.put(f,dv.getTS());
-                    RESULT = hm;
-                :}
+/* Tipos Basicos */
+tipoB   ::= DECLENTERO:t    {: RESULT = TipoF.INT; :}
+        |   DECLREAL:t      {: RESULT = TipoF.FLOAT;  :}
+        |   DECLBOOL:t      {: RESULT = TipoF.BOOL; :} 
         ;
 
-fact ::=    ID:v        {: RESULT = v.text; :}
-       |    CIERTO:v    {: RESULT = new Booleano(true); :}
-       |    FALSO:v     {: RESULT = new Booleano(false); :}
-       |    ENTERO:v    {: RESULT = v; :}
-       |    REAL:v      {: RESULT = v; :}
-       ;
+LC		::=	tipo:t ID:i				
+		{: 	TablaSim ts = new TablaSim();
+			Informacion info = new Informacion(i.text, t, null,0);	
+			ts.add(i.text,info);
+			RESULT = ts; 
+		:}
+		|	LC:ts COMA tipo:t ID:i	
+		{: 	Informacion info = new Informacion(i.text, t, null,0);		
+			ts.add(i.text,info);
+			RESULT = ts; 
+		:}
+        ;
