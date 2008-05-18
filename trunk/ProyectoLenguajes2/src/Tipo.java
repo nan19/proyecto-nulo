@@ -89,7 +89,7 @@ class TArreglo extends Tipo{
         this.size = s;
     }
 	public String toString(){
-        return "Arreglo ["+this.size+ "]de "+this.tipo;
+        return "Arreglo ["+this.size+ "] de "+this.tipo;
     }
 
     @Override

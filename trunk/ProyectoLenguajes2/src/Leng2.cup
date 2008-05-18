@@ -14,6 +14,15 @@ import java.util.*;
  * Leng2.cup: Analizador sintactico del lenguaje
  * 
  */
+ 
+ /*
+	Llamadas a procs
+	Tam de arreglos
+	Def de tipos nuevos
+	Verificacion de errores de llamadas a procs
+	Verificacion de errores de  tipos compuestos
+	Verificacion de errores de  tipos nuevos, definidos antes de usar
+ */
 action code {:
     Bloque bloque = (Misc.acumulador != null)? Misc.acumulador : new Bloque();	
     boolean noError = true;
@@ -23,9 +32,6 @@ action code {:
  * Definicion de los tokens generados por el escaner
  * con el tipo asociado.
  */  
- 
- 
- 
  
 terminal TokenValue FUNC;
 terminal TokenValue FINFUNC;
@@ -40,8 +46,9 @@ terminal TokenValue FIN;
 terminal TokenValue DECLENTERO;
 terminal TokenValue DECLREAL;
 terminal TokenValue DECLBOOL;
+terminal TokenValue REGISTRO;
+terminal TokenValue FINREG;
 terminal TokenValue TIPODATO;
-terminal TokenValue FINTIPODATO;
 terminal TokenValue FINT;
 terminal TokenValue CASO;
 terminal TokenValue ES;
@@ -91,7 +98,7 @@ non terminal inicio;
 non terminal Bloque bloq;
 non terminal Bloque lInst;
 non terminal Inst inst, Decl, SubProg, iDeclA, iAsig, iSi, iSino, 
-				iHacer, llamProc;
+				iHacer, iLlamada, iDefTipo;
 non terminal Expresion expr, fact;
 non terminal Bloque inicB, finB;
 non terminal Tipo tipo, tipoG, tipoArr, tipoReg, tipoVan;
@@ -129,16 +136,13 @@ precedence left PUNTO;
 /**
  * Gramatica del lenguaje.
  */
-inicio	::= lSubProgs COMIENZO bloq:b FIN
+inicio	::= COMIENZO bloq:b FIN
         {: 	//if (noError)
 				b.imprimirB(0);
 			
 		:}
 		;
-lSubProgs::= lSubProgs SubProg
-            |	SubProg
-            |
-            ;
+
 /** Definicion de un Bloque */
 bloq    ::= inicB lInst finB:b {: RESULT = b; :}
         ;
@@ -153,13 +157,15 @@ lInst	::= lInst inst:i 	{: bloque.agregarInst(i); :}
         |   inst:i 		    {: bloque.agregarInst(i); :}
         ;
 /** Tipos de Instrucciones */		
-inst	::= Decl:i	PYCOMA  {: RESULT = i; :}
+inst	::= Decl:i	PYCOMA  	{: RESULT = i; :}
         |   iDeclA:i	PYCOMA  {: RESULT = i; :}
         |   iAsig:i     PYCOMA  {: RESULT = i; :}
         |   iSi:i               {: RESULT = i; :}
         |   iSino:i             {: RESULT = i; :}
         |   iHacer:i            {: RESULT = i; :}
-        |   llamProc:i	PYCOMA  {: RESULT = i; :}		
+        |   iLlamada:i	PYCOMA  {: RESULT = i; :}	
+		|	iDefTipo			{: RESULT = null; :}
+		|	SubProg				{: RESULT = null; :}
         ;
 /** Declaracion */
 Decl	::= tipo:t ID:i
@@ -176,12 +182,6 @@ Decl	::= tipo:t ID:i
 				bloque.getTS().add(i.text ,info);
                     RESULT = null;
         :}				
-//            |	TIPODATO ID IGUAL iniBProc LVar finB:b
-//            {:	RESULT = null;
-//            :}
-//            |	TIPODATO ID IGUAL iniBProc LVar COMA discr finB:b
-//            {:	RESULT = null;
-//            :}
         ;
 
 /** Declaracion con Asignacion*/
@@ -220,7 +220,7 @@ iHacer	::= HACER APARENT expr:e CPARENT bloq:l FINHACER
 		{: RESULT = new InstDo(e, l); :}
         ;
 /** Instruccion de llamada a un procedimiento */		
-llamProc::=	ID:i APARENT LParam:l CPARENT
+iLlamada::=	ID:i APARENT LParam:l CPARENT
 		{:	if (!bloque.getTS().isDefined(i.text)) {
 				noError = noError & false;
 				System.out.println("ERROR (linea "+(i.lineBegin+1)+
@@ -229,6 +229,9 @@ llamProc::=	ID:i APARENT LParam:l CPARENT
 				RESULT = new InstProc(i.text, l);
 			
 		:}
+		;
+		
+iDefTipo::=	TIPODATO ID IGUAL tipo FINT
 		;
 /** Definicion de subprograma */		
 SubProg	::=	Proc	{: RESULT = null; :}
@@ -392,8 +395,12 @@ tipo    ::= tipoB:t
 			{: RESULT = new TArreglo(t,i); :}	//tamanio del arreglo?
         |   ACORCH CCORCH tipo:t   
 			{: RESULT = new TArreglo(t,-1); :}
-        |   TIPODATO LC:ts FINTIPODATO   
+        |   REGISTRO LC:ts FINREG
 			{: RESULT = new TRegistro(ts); :}
+		|	ID:i
+			{: //chequear en TS y obtener arbol de tipo
+			
+			:}
         ;
 
 /* Tipos Basicos */
@@ -416,7 +423,7 @@ LC		::=	tipo:t ID:i
         ;
 
 /* Variante */
-tipoVan ::= TIPODATO LVar:ts COMA CASO tipo:t ID:i ES lDiscr:hm FINT //Lvar ts comun
+tipoVan ::= REGISTRO LVar:ts COMA CASO tipo:t ID:i ES lDiscr:hm FINREG //Lvar ts comun
 			{: 
 				Informacion info = new Informacion(i.text, t, null, 0);
 				ts.add(i.text,info);
