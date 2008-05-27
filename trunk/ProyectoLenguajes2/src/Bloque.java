@@ -17,6 +17,7 @@ import java.util.*;
  * 
  */
 
+
 /**
  * Clase que envuelve a la lista de instrucciones y la tabla de simbolos del
  * programa
@@ -45,6 +46,7 @@ public class Bloque{
 	*/
     public void imprimirB(int i){
         System.out.println(this.imprimir(i)+this.tabla);
+        System.out.println(this.toCode(Misc.newLabel()));
     }   
     
     public String imprimir(int i) {
@@ -120,16 +122,58 @@ public class Bloque{
     }       
     public String toString() {
         Inst i;
+        
         String acum = "";
 		for(int j=0; j<this.inst.size(); j++){
             i = this.inst.get(j);
 			if (i!=null)
 				acum+= i.imprimir(0)+"\n";            
-        }      
+        }
+        acum += this.toCode(Misc.newLabel());
         return acum;
-    }	
+    }
+    
+    public String toCode(String next){
+        String codigo = "";
+        if(this.getParent()==null){
+            codigo +=  ".data\n";
+            codigo +=".space "+this.getTS().getSize();
+            codigo +="\n.code";
+            codigo += "r2 := &globl\n";
+        }
+        codigo += "#Comienzo codigo bloque "+next+"\n";
+        Iterator<Inst> it = this.inst.iterator();
+        String aux1 = Misc.newLabel();
+        String aux0;
+        while(it.hasNext()){
+            Inst i;
+            i = it.next();    //una instruccion
+            aux0 = aux1;
+            aux1 = Misc.newLabel();
+            if(it.hasNext()){
+                codigo += i.toCode(aux0, aux1);
+            }else{
+                codigo += i.toCode(aux0, next);
+            }
+            /*
+            if(it.hasNext()){
+                i.setNext(Misc.newLabel());
+            }else{
+                i.setNext(this.getNext());
+            }
+             */
+            //codigo += i.toCode() + "\n"+i.getNext()+": ";
+            
+            
+        }
+        codigo += "#@Fin Codigo Bloque "+next+"\n";
+        if(this.getParent()==null){
+            codigo += next+": halt\n";
+        }
+        
+        return codigo;
+    }
 }
-
 class TablaSim{
     private HashMap<String,Informacion> tabla;
     private TablaSim parent;
@@ -300,6 +344,10 @@ class Booleano{
     }    
     public String toString() {
         return (this.b)?"cierto":"falso";
+    }
+    
+    public boolean getValue(){
+        return this.b;
     }
 }
 

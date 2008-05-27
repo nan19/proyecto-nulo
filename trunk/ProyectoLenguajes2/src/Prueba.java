@@ -49,7 +49,7 @@ public class Prueba {
 
 	try {
             r = pre.parse();
-	    root = P.parse(); 	    
+	    root = P.parse();
             
 	} catch (Exception ex){
 	    System.out.println(ex);

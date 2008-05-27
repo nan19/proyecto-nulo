@@ -1,7 +1,13 @@
-func entero ejemplo1 (entero b)
-    entero a := 1;
-finp
+//func entero ejemplo1 (entero b)
+//    entero a := 1;
+//finp
 
 comienzo
-    entero z := 3;
+    booleano b := cierto;
+    hacer(4>3)
+        entero a:= 5;
+    finh
+    si (2 > 1)
+        entero c:= 3;
+    fins
 fin

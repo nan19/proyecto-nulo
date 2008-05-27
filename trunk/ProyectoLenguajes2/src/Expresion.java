@@ -148,11 +148,13 @@ enum OperadorU {
     }
 }
 
+
+
 /**
  * Clase abstracta que sirve como Superclase para los diversos tipos de 
  * expresiones del lenguaje
  */
-abstract class Expresion {
+public abstract class Expresion {
 
     /**
 	* Metodo desarrollado por conveniencia. Imprime la representacion en
@@ -160,14 +162,16 @@ abstract class Expresion {
 	*/
     public abstract String imprimir(int i);    
     public abstract boolean esCorrecta(Bloque c, int line);    
-    public abstract Tipo getTipo(Bloque c);    
+    public abstract Tipo getTipo(Bloque c);
     void showError(String e, String tipoEsperado, String tipoHallado){
         String error = "Error de tipo en la expresion"+e+" se esperaba ";
         error += tipoEsperado+" y se hallo "+tipoHallado;
         System.out.println(error);
-    }    
+    }  
+    
+    public abstract String toCode(String yes, String no);
+    
 }
-
 /**
  * Clase que representa expresiones cuyos operadores son binarios
  */
@@ -299,6 +303,21 @@ class ExprBin extends Expresion {
     
     }
 
+    @Override
+    public String toCode(String yes, String no) {
+        String aux;
+        switch(Op){
+            case AND:
+                aux = Misc.newLabel();
+                return ExprIzq.toCode(aux,no)+"\n"+aux+": "+ExprDer.toCode(yes,no);
+            case OR:
+                aux = Misc.newLabel();
+                return ExprIzq.toCode(yes,aux)+"\n"+aux+": "+ExprDer.toCode(yes,no);
+        }
+        return "\n#Error en toCode ExprBin u operacion no implementada\n";
+    }
+    
+    
 }
 
 /**
@@ -362,6 +381,16 @@ class ExprUna extends Expresion {
         }
         */
     }
+
+    @Override
+    public String toCode(String yes, String no) {
+        switch(this.Op){
+            case NOT:
+                return this.E.toCode(no, yes);
+        }
+        return "\n#Error toCode ExprUna u Operacion no implementada aun\n";
+    }
+    
 }
 
 /**
@@ -413,9 +442,22 @@ class Factor extends Expresion {
 			return new TBasico(this.tipo);
        
         }
+
+    @Override
+    public String toCode(String yes, String no) {
+        switch(this.tipo){
+            case BOOL:
+                if(((Booleano)this.valor).getValue()){
+                    return "goto "+yes+"\n";
+                }else{
+                    return "goto "+no+"\n";
+                }
+        }
+        return "\n#Error en Factor toCode o Caso no previsto\n";
+    }
+    
         
 }
-
 abstract class LValue {
 	public abstract String toString();
 	public abstract String obtenerId();
@@ -496,4 +538,12 @@ class Arreglo extends Expresion {
         return new TBasico(TipoF.ERROR);
 		//return this.tipo;        
     }
+
+    @Override
+    public String toCode(String yes, String no) {
+        //throw new UnsupportedOperationException("Not supported yet.");
+        return "\n#Codigo de Arreglo:Expresion\n";
+    }
+    
+    
 }
