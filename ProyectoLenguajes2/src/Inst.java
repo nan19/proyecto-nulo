@@ -14,17 +14,21 @@ import java.util.*;
  * 
  */
 
+
+
 /**
  * Clase abstracta que sirve de Superclase a todas las clases que representan
  * instrucciones del Lenguaje
  */
-abstract class Inst {
+public abstract class Inst {
     /**
 	* Metodo desarrollado por conveniencia. Imprime la representacion en
 	* <b>String</b> del objeto.
 	*/
     public abstract String imprimir(int i);    
-    public abstract boolean esCorrecta(Bloque c, Informacion info, int linea);    
+    public abstract boolean esCorrecta(Bloque c, Informacion info, int linea);
+    public abstract String toCode(String start, String next);
+    
 }
 
 /**
@@ -64,6 +68,17 @@ class Decl extends Inst {
     }
     public void setParent(Bloque c) {
     }
+
+    @Override
+    public String toCode(String start, String next) {
+        //throw new UnsupportedOperationException("Not supported yet.");
+        return start+":\n#Declaracion no ha sido implementada todavia\n";
+    }
+
+    
+    
+    
+    
 }
 
 /**
@@ -131,8 +146,24 @@ class InstAsig extends Inst {
 		}
 		return ok;  	
     }
-}
 
+    @Override
+    public String toCode(String start, String next) {
+        //this.E.setYes(Misc.newLabel());
+        //this.E.setNo(Misc.newLabel());
+        String auxy = Misc.newLabel();
+        String auxn = Misc.newLabel();
+        String reg = ""; //
+        String code = start+": "+this.E.toCode(auxy,auxn);
+        code += auxy+": "+reg+" := 1\n";
+        code += "[r2+"+/*this.Variable.getShift+*/ "] := "+reg+"\n";
+        code += "goto "+next+"\n";
+        code += auxn+": "+reg+" := 0\n";
+        code += "[r2+"+/*this.Variable.getShift+*/ "] := "+reg+"\n";
+        return code;
+    }
+    
+}
 /**
  * Clase que representa una instruccion condicional simple
  */
@@ -169,6 +200,16 @@ class InstIf extends Inst {
     public boolean esCorrecta(Bloque c, Informacion info, int linea) {
         return this.Condicion.esCorrecta(c, 0);
     }
+
+    @Override
+    public String toCode(String start, String next) {
+        //this.Condicion.setYes(Misc.newLabel());
+        //this.Condicion.setNo(this.getNext());
+        //this.inst.setNext(this.getNext());
+        String aux = Misc.newLabel();
+        return start+": "+this.Condicion.toCode(aux,next)+aux+": "+this.inst.toCode(next);
+    }
+    
 }
 
 /**
@@ -206,6 +247,22 @@ class InstIfElse extends InstIf {
     public String toString() {
         return super.toString().replaceFirst("fins","sino\n"+instElse+"fins");
     }
+
+    @Override
+    public String toCode(String start, String next) {
+        //this.Condicion.setYes(Misc.newLabel());
+        //this.Condicion.setNo(Misc.newLabel());
+        //this.inst.setNext(this.getNext());
+        String auxy = Misc.newLabel();
+        String auxn = Misc.newLabel();
+        String code = start+": "+this.Condicion.toCode(auxy,auxn);
+        code += auxy+": "+this.inst.toCode(next);
+        code += "goto "+next+"\n";
+        code += auxn+": "+this.instElse.toCode(next);
+        return code;
+    }
+    
+    
 }
 
 /**
@@ -244,8 +301,20 @@ class InstDo extends Inst {
     public boolean esCorrecta(Bloque c, Informacion info, int linea) {
         return this.Condicion.esCorrecta(c, 0);
     }
-}
 
+    @Override
+    public String toCode(String start, String next) {
+        //this.Condicion.setYes(Misc.newLabel());
+        //this.Condicion.setNo(this.getNext());
+        String aux = Misc.newLabel();
+        String code = start+": "+this.Condicion.toCode(aux,next);
+        code += aux+": "+this.inst.toCode(start);
+        code += "goto "+start+"\n";
+        return code;
+    }
+    
+    
+}
 /**
  * Clase que representa una instruccion de llamada a un procedimiento
  */
@@ -290,4 +359,12 @@ class InstProc extends Inst {
     public boolean esCorrecta(Bloque c, Informacion info, int linea) {
         return true;
     }
+
+    @Override
+    public String toCode(String start, String next) {
+        //throw new UnsupportedOperationException("Not supported yet.");
+        return start+":\nLlamadas a procedimientos aun no implementadas\n";
+    }
+    
+    
 }

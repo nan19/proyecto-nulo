@@ -27,4 +27,10 @@ public class Misc {
         }
         return total;
     }
+    
+    private static int etiquetador = -1;
+    public static String newLabel(){
+        etiquetador++;
+        return "lab"+etiquetador;
+    }
 }
