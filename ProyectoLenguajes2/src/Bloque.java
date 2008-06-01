@@ -166,14 +166,24 @@ public class Bloque{
             
             
         }
-        codigo += "#@Fin Codigo Bloque "+next+"\n";
+        codigo += "#Fin Codigo Bloque "+next+"\n";
         if(this.getParent()==null){
             codigo += next+": halt\n";
         }
         
         return codigo;
     }
+    
+    public void setShift(int acum){
+        int next = this.tabla.setShift(acum);
+        Iterator<Inst> it = this.inst.iterator();
+        while(it.hasNext()){
+            Inst i = it.next();
+            i.setShift(next);
+        }
+    }
 }
+
 class TablaSim{
     private HashMap<String,Informacion> tabla;
     private TablaSim parent;
@@ -260,7 +270,26 @@ class TablaSim{
     public int getSize(){
         return this.size;
     }
+    
+    public int setShift(int acum){
+        Set k = this.tabla.keySet();
+        Iterator it = k.iterator();
+        int next = acum;
+        final int tam_entero = 4;
+        while(it.hasNext()){
+            Object aux = it.next();
+            Informacion info = this.tabla.get(aux);
+            int delta = info.tipo.getSize();
+            if(delta < tam_entero){
+                next = (next+tam_entero-1)/tam_entero;
+            }
+            info.setShift(next);
+            next+= delta;
+        }
+        return (next+tam_entero-1)/tam_entero;
+    }
 }
+
 
 class Informacion {
 	//Nombre del identificador
@@ -271,7 +300,7 @@ class Informacion {
     Object valor;
 	//Estatus de declaracion: 0 normal, 1 Doble Declaracion, 2 No Declarada
     int status;
-    
+    private int shift;
     public Informacion(String n, Tipo t, Object v, int i){
         this.nombre = n;
         this.tipo = t;
@@ -282,7 +311,7 @@ class Informacion {
     public Informacion(String n, TipoF t, Object v, int i){
         this.nombre = n;
         this.tipo = new TBasico(t);
-		this.valor = v;   
+        this.valor = v;   
         this.status = i;   
     }
     
@@ -312,10 +341,18 @@ class Informacion {
         this.status = status;
     }    
     public String toString(){
-        return nombre + " : " + tipo + " : " + valor;
+        return nombre + " : " + tipo + " : " + valor+" : "+shift;
     }
-}
 
+    public void setShift(int shift) {
+        this.shift = shift;
+    }
+
+    public int getShift() {
+        return shift;
+    }
+    
+}
 class InfoSub{
     Bloque bloque;
     java.util.List param;

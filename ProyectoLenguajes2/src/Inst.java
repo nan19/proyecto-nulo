@@ -28,8 +28,10 @@ public abstract class Inst {
     public abstract String imprimir(int i);    
     public abstract boolean esCorrecta(Bloque c, Informacion info, int linea);
     public abstract String toCode(String start, String next);
+    public abstract void setShift(int acum);
     
 }
+
 
 /**
  * Clase que representa una Declaracion de variable
@@ -75,12 +77,16 @@ class Decl extends Inst {
         return start+":\n#Declaracion no ha sido implementada todavia\n";
     }
 
+    @Override
+    public void setShift(int acum) {
+        return;
+    }
+
     
     
     
     
 }
-
 /**
  * Clase que representa una instruccion de asignacion
  */
@@ -162,8 +168,16 @@ class InstAsig extends Inst {
         code += "[r2+"+/*this.Variable.getShift+*/ "] := "+reg+"\n";
         return code;
     }
+
+    @Override
+    public void setShift(int acum) {
+        return;
+    }
+    
+    
     
 }
+
 /**
  * Clase que representa una instruccion condicional simple
  */
@@ -209,6 +223,13 @@ class InstIf extends Inst {
         String aux = Misc.newLabel();
         return start+": "+this.Condicion.toCode(aux,next)+aux+": "+this.inst.toCode(next);
     }
+
+    @Override
+    public void setShift(int acum) {
+        this.inst.setShift(acum);
+    }
+    
+    
     
 }
 
@@ -261,10 +282,15 @@ class InstIfElse extends InstIf {
         code += auxn+": "+this.instElse.toCode(next);
         return code;
     }
+
+    @Override
+    public void setShift(int acum) {
+        this.inst.setShift(acum);
+        this.instElse.setShift(acum);
+    }
     
     
 }
-
 /**
  * Clase que representa una instruccion iterativa
  */
@@ -311,6 +337,11 @@ class InstDo extends Inst {
         code += aux+": "+this.inst.toCode(start);
         code += "goto "+start+"\n";
         return code;
+    }
+
+    @Override
+    public void setShift(int acum) {
+        this.inst.setShift(acum);
     }
     
     
@@ -364,6 +395,11 @@ class InstProc extends Inst {
     public String toCode(String start, String next) {
         //throw new UnsupportedOperationException("Not supported yet.");
         return start+":\nLlamadas a procedimientos aun no implementadas\n";
+    }
+
+    @Override
+    public void setShift(int acum) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     
