@@ -28,10 +28,8 @@ public abstract class Inst {
     public abstract String imprimir(int i);    
     public abstract boolean esCorrecta(Bloque c, Informacion info, int linea);
     public abstract String toCode(String start, String next);
-    public abstract void setShift(int acum);
     
 }
-
 
 /**
  * Clase que representa una Declaracion de variable
@@ -77,16 +75,12 @@ class Decl extends Inst {
         return start+":\n#Declaracion no ha sido implementada todavia\n";
     }
 
-    @Override
-    public void setShift(int acum) {
-        return;
-    }
-
     
     
     
     
 }
+
 /**
  * Clase que representa una instruccion de asignacion
  */
@@ -137,6 +131,12 @@ class InstAsig extends Inst {
 			ok = false;
 		}
 		//chequeo de compatibilidad entre la expresion y la variable
+		Class c1 = tipoE.getClass();
+		Class c2 = tipoV.getClass();
+		if (!c1.equals(c2)) 
+			System.out.println("ERROR (linea "+linea+") La Asignacion a la variable '"+this.Variable+
+						"' no es posible. Los tipos no son compatibles.");
+		/*
 		if (!((TBasico)tipoV).tipo.equals(TipoF.NODEF)) {
 			if (((TBasico)tipoV).tipo.equals(TipoF.FLOAT)) {
 				if ( !(((TBasico)tipoE).tipo.equals(TipoF.FLOAT) || ((TBasico)tipoE).tipo.equals(TipoF.INT)) ) {
@@ -149,7 +149,7 @@ class InstAsig extends Inst {
 						"' no es posible. Los tipos no son compatibles.");
 				ok = false;
 			}
-		}
+		}*/
 		return ok;  	
     }
 
@@ -168,16 +168,8 @@ class InstAsig extends Inst {
         code += "[r2+"+/*this.Variable.getShift+*/ "] := "+reg+"\n";
         return code;
     }
-
-    @Override
-    public void setShift(int acum) {
-        return;
-    }
-    
-    
     
 }
-
 /**
  * Clase que representa una instruccion condicional simple
  */
@@ -223,13 +215,6 @@ class InstIf extends Inst {
         String aux = Misc.newLabel();
         return start+": "+this.Condicion.toCode(aux,next)+aux+": "+this.inst.toCode(next);
     }
-
-    @Override
-    public void setShift(int acum) {
-        this.inst.setShift(acum);
-    }
-    
-    
     
 }
 
@@ -282,15 +267,10 @@ class InstIfElse extends InstIf {
         code += auxn+": "+this.instElse.toCode(next);
         return code;
     }
-
-    @Override
-    public void setShift(int acum) {
-        this.inst.setShift(acum);
-        this.instElse.setShift(acum);
-    }
     
     
 }
+
 /**
  * Clase que representa una instruccion iterativa
  */
@@ -338,18 +318,13 @@ class InstDo extends Inst {
         code += "goto "+start+"\n";
         return code;
     }
-
-    @Override
-    public void setShift(int acum) {
-        this.inst.setShift(acum);
-    }
     
     
 }
 /**
  * Clase que representa una instruccion de llamada a un procedimiento
  */
-class InstProc extends Inst {
+class InstLlamada extends Inst {
     
     //Identificador del procedimiento
     private String id;    
@@ -361,7 +336,7 @@ class InstProc extends Inst {
 	* @param id Identificador del procedimiento
 	* @param param Lista de parametros
 	*/
-    public InstProc (String id, LinkedList<Expresion> param) {
+    public InstLlamada (String id, LinkedList<Expresion> param) {
         this.id = id;
         this.param = param;
     }
@@ -390,16 +365,17 @@ class InstProc extends Inst {
     public boolean esCorrecta(Bloque c, Informacion info, int linea) {
         return true;
     }
+	public String getId() {
+		return this.id;
+	}
+	public LinkedList<Expresion> getParams() {
+		return this.param;
+	}
 
     @Override
     public String toCode(String start, String next) {
         //throw new UnsupportedOperationException("Not supported yet.");
         return start+":\nLlamadas a procedimientos aun no implementadas\n";
-    }
-
-    @Override
-    public void setShift(int acum) {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     

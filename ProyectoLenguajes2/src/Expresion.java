@@ -313,20 +313,6 @@ class ExprBin extends Expresion {
             case OR:
                 aux = Misc.newLabel();
                 return ExprIzq.toCode(yes,aux)+"\n"+aux+": "+ExprDer.toCode(yes,no);
-                
-            case DESIGUAL: return "#DESIGUAL no ha sido implementado\n";
-            case IGUAL: return "#IGUAL no ha sido implementado\n";
-            case MAYOR: return "#MAYOR no ha sido implementado\n";
-            case MENOR: return "#MENOR no ha sido implementado\n";
-            case MAYORIGUAL: return "#MAYORIGUAL no ha sido implementado\n";
-            case MENORIGUAL: return "#MENORIGUAL no ha sido implementado\n";
-            case SUMA: return "#SUMA no ha sido implementado\n";
-            case RESTA: return "#RESTA no ha sido implementado\n";
-            case MULT: return "#MULT no ha sido implementado\n";
-            case DIVR: return "#DIVR no ha sido implementado\n";
-            case DIVE: return "#DIVE no ha sido implementado\n";
-            case MOD: return "#MOD no ha sido implementado\n";
-                
         }
         return "\n#Error en toCode ExprBin u operacion no implementada\n";
     }
@@ -401,11 +387,6 @@ class ExprUna extends Expresion {
         switch(this.Op){
             case NOT:
                 return this.E.toCode(no, yes);
-                
-            case MENOS: return "#MENOS no ha sido implementado";
-            case PISO: return "#PISO no ha sido implementado";
-            case REDONDEO: return "#REDONDEO no ha sido implementado";
-            case TECHO: return "#TECHO no ha sido implementado";
         }
         return "\n#Error toCode ExprUna u Operacion no implementada aun\n";
     }
@@ -528,7 +509,7 @@ class Identificador extends LValue {
 class Arreglo extends Expresion {
       
     //Tipo del arreglo
-    private TipoF tipo;	
+    private Tipo tipo;	
 	//Tamanno del arreglo
 	private int tam;
 	//Lista de Elementos
@@ -539,7 +520,7 @@ class Arreglo extends Expresion {
 	* @param t tipo de la Expresion
 	* @param v valor de la Expresion
 	*/
-    public Arreglo (TipoF t, int tam, LinkedList<Expresion> listaElem){
+    public Arreglo (Tipo t, int tam, LinkedList<Expresion> listaElem){
         this.tipo = t;
         this.tam = tam; 
 		this.listaElem = listaElem;
@@ -554,8 +535,7 @@ class Arreglo extends Expresion {
             return true;        
     }
     public Tipo getTipo(Bloque c) {
-        return new TBasico(TipoF.ERROR);
-		//return this.tipo;        
+        return new TArreglo(this.tipo,this.tam);
     }
 
     @Override

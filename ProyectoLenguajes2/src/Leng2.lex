@@ -110,13 +110,13 @@ ESPACIO=([\ \n\r\t\f])+
 <YYINITIAL> ":" { 
   return new Symbol(sym.DOSPUNTOS, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
-<YYINITIAL> "ent" { 
+<YYINITIAL> "e" { 
   return new Symbol(sym.ENTRADA, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
-<YYINITIAL> "ent-sal" { 
+<YYINITIAL> "es" { 
   return new Symbol(sym.ENTSAL, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
-<YYINITIAL> "sal" { 
+<YYINITIAL> "s" { 
   return new Symbol(sym.SALIDA, new TokenValue(yytext(), yyline, yychar, sourceFilename)); 
 }
 

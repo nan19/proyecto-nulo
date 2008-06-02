@@ -30,7 +30,46 @@ public class Bloque{
     private TablaSim tabla;    
     //Bloque externo a este
     private Bloque bloqueExterno;
+	private int id;
+	
+	Bloque(Bloque bExt, boolean b, int id ){
+        this.bloqueExterno = bExt;
+		if (b) {
+	        TablaSim tsp = (bExt != null ) ? bExt.tabla : null;
+	        this.tabla = new TablaSim(tsp);
+		} else {
+			this.tabla = new TablaSim(null);
+		}
+        this.inst = new LinkedList<Inst>();
+		this.id = id;
+    }	    
+    /**
+	* Constructor del envoltorio para la Lista de Instrucciones y para la Tabla
+	* de Simbolos
+	*/
+    Bloque(int id){
+        this.bloqueExterno = null;
+        this.tabla = new TablaSim(null);
+        this.inst = new LinkedList<Inst>();
+		this.id = id;
+    }          
+    /**
+     * Constructor del envoltorio para la Lista de Instrucciones y para la Tabla
+     * de Simbolos. Agrega una instrucciona al nuevo objeto y una declaracion.
+     * 
+     * @param i Inst a agregar
+     * @param id Nombre de la variable
+     * @param tipo Tipo de la variable
+     */
+    Bloque(Inst i, String id, Informacion info){
+        this(0);
+        this.agregarInst(i);
+        this.agregarID(id,info);
+    }       
 
+	public int getId() {
+		return this.id;
+	}
     public void setParent(Bloque bloqueExterno) {
         this.bloqueExterno = bloqueExterno;
     }
@@ -52,12 +91,12 @@ public class Bloque{
     public String imprimir(int i) {
         Inst in;
         String acum = "";
-                for(int j=0; j<this.inst.size(); j++){
+        for(int j=0; j<this.inst.size(); j++){
             in = this.inst.get(j);
-                        if (in!=null) {				
-                                acum+= in.imprimir(i+1);            
-                        }
-    }      
+                if (in!=null) {				
+                    acum+= in.imprimir(i+1);            
+                }
+		}      
     return acum;
     }
     /**
@@ -88,38 +127,7 @@ public class Bloque{
     public Informacion getInfo(String s){
         return this.tabla.get(s);
     }    
-    Bloque(Bloque bExt, boolean b){
-        this.bloqueExterno = bExt;
-		if (b) {
-	        TablaSim tsp = (bExt != null ) ? bExt.tabla : null;
-	        this.tabla = new TablaSim(tsp);
-		} else {
-			this.tabla = new TablaSim(null);
-		}
-        this.inst = new LinkedList<Inst>();
-    }	    
-    /**
-	* Constructor del envoltorio para la Lista de Instrucciones y para la Tabla
-	* de Simbolos
-	*/
-    Bloque(){
-        this.bloqueExterno = null;
-        this.tabla = new TablaSim(null);
-        this.inst = new LinkedList<Inst>();
-    }          
-    /**
-     * Constructor del envoltorio para la Lista de Instrucciones y para la Tabla
-     * de Simbolos. Agrega una instrucciona al nuevo objeto y una declaracion.
-     * 
-     * @param i Inst a agregar
-     * @param id Nombre de la variable
-     * @param tipo Tipo de la variable
-     */
-    Bloque(Inst i, String id, Informacion info){
-        this();
-        this.agregarInst(i);
-        this.agregarID(id,info);
-    }       
+    
     public String toString() {
         Inst i;
         
@@ -166,24 +174,14 @@ public class Bloque{
             
             
         }
-        codigo += "#Fin Codigo Bloque "+next+"\n";
+        codigo += "#@Fin Codigo Bloque "+next+"\n";
         if(this.getParent()==null){
             codigo += next+": halt\n";
         }
         
         return codigo;
     }
-    
-    public void setShift(int acum){
-        int next = this.tabla.setShift(acum);
-        Iterator<Inst> it = this.inst.iterator();
-        while(it.hasNext()){
-            Inst i = it.next();
-            i.setShift(next);
-        }
-    }
 }
-
 class TablaSim{
     private HashMap<String,Informacion> tabla;
     private TablaSim parent;
@@ -270,26 +268,10 @@ class TablaSim{
     public int getSize(){
         return this.size;
     }
-    
-    public int setShift(int acum){
-        Set k = this.tabla.keySet();
-        Iterator it = k.iterator();
-        int next = acum;
-        final int tam_entero = 4;
-        while(it.hasNext()){
-            Object aux = it.next();
-            Informacion info = this.tabla.get(aux);
-            int delta = info.tipo.getSize();
-            if(delta < tam_entero){
-                next = (next+tam_entero-1)/tam_entero;
-            }
-            info.setShift(next);
-            next+= delta;
-        }
-        return (next+tam_entero-1)/tam_entero;
-    }
+	public HashMap<String,Informacion> getTabla() {
+		return tabla;
+	}
 }
-
 
 class Informacion {
 	//Nombre del identificador
@@ -300,7 +282,7 @@ class Informacion {
     Object valor;
 	//Estatus de declaracion: 0 normal, 1 Doble Declaracion, 2 No Declarada
     int status;
-    private int shift;
+    
     public Informacion(String n, Tipo t, Object v, int i){
         this.nombre = n;
         this.tipo = t;
@@ -311,7 +293,7 @@ class Informacion {
     public Informacion(String n, TipoF t, Object v, int i){
         this.nombre = n;
         this.tipo = new TBasico(t);
-        this.valor = v;   
+		this.valor = v;   
         this.status = i;   
     }
     
@@ -341,30 +323,128 @@ class Informacion {
         this.status = status;
     }    
     public String toString(){
-        return nombre + " : " + tipo + " : " + valor+" : "+shift;
+        return nombre + " : " + tipo + " : " + valor;
     }
-
-    public void setShift(int shift) {
-        this.shift = shift;
-    }
-
-    public int getShift() {
-        return shift;
-    }
-    
 }
-class InfoSub{
-    Bloque bloque;
-    java.util.List param;
-	TipoF tipo;
+
+enum Metodo { E, ES, S }
+
+class InfoSub {
+	private String id;
+    private Bloque bloque;
+	private TablaSim ts;
+    private LinkedList<Param> params;	
+	private TipoF tipoSP;
+	private Tipo tipoFunc;
     
-    public InfoSub(Bloque b, java.util.List p){
-        this.bloque = b;
-        this.param = p;
-    }    
-    public void setBloque(Bloque b){
-        this.bloque = b;
-    }
+    public InfoSub(String id, Bloque b, TablaSim ts, LinkedList<Param> p, TipoF tipoSP, Tipo t){
+        this.id = id;
+		this.bloque = b;
+		this.ts = ts;
+        this.params = p;
+        this.tipoSP = tipoSP;
+        this.tipoFunc = t;
+		if ((p == null) && (ts != null)) {		
+			for (Iterator iter = ts.getTabla().entrySet().iterator(); iter.hasNext();)
+			{ 
+			    Map.Entry entry = (Map.Entry)iter.next();
+			    String idP = (String)entry.getKey();
+			    Informacion info = (Informacion)entry.getValue();			
+				this.params.add((Param)info.getValor());
+				System.out.println(idP);
+			}			
+		}
+    }        
+	public void setTipoFunc(Tipo t) {
+		this.tipoFunc = t;
+	}
+	public void setBloque(Bloque b) {
+		this.bloque = b;
+	}
+	public Bloque getBloque() {
+		return this.bloque;
+	}
+	public TablaSim getTabla() {
+		return this.ts;
+	}
+	public List<Param> getParams() {
+		return this.params;
+	}
+	public TipoF getTipo() {
+		return this.tipoSP;
+	}
+	public boolean chequearParams(LinkedList<Expresion> l, Bloque b, int linea) {
+		
+		if (this.params.size() != l.size() ) {
+			System.out.println("ERROR (linea "+linea+
+					") El pasaje de parametros al subprograma '"+this.id+
+					"' no es correcto. El numero de parametros debe ser igual a "
+					+this.params.size()+".");
+			return false;
+		} else {
+			for(int i=0;i<this.params.size();i++) {
+				if (!((this.params.get(i).getTipo()).comparar((l.get(i)).getTipo(b)))) {	
+					Class c1 = this.params.get(i).getTipo().getClass();
+					Class c2 = (l.get(i)).getTipo(b).getClass();					
+					System.out.println("ERROR (linea "+linea+
+					") El pasaje de parametros al subprograma '"+this.id+
+					"' no es correcto para el parametro en la posicion "+(i+1)+".");
+					return false;						
+				}			
+			}
+		}
+		return true;	
+	}
+	public String toString() {
+		String s = "Parametros: ";
+		for(int i=0;i<this.params.size();i++) {
+			s += this.params.get(i).getId() + " ";
+			
+		}
+		s += "\nInstrucciones: \n" +this.bloque.imprimir(0)+this.bloque.getTS()+"\n";		
+		return s;
+		
+	}
+}
+
+class Param {
+
+	private String id;
+	private Tipo tipo;
+	private Metodo metodo;
+	
+	
+	public Param (String id, Tipo tipo, Metodo metodo) {
+		this.id = id;
+		this.tipo = tipo;
+		this.metodo = metodo;
+	}
+	public void setMetodo (Metodo metodo) {
+		this.metodo = metodo;
+	}
+	public String getId() {
+		return this.id;
+	}
+	public Tipo getTipo() {
+		return this.tipo;
+	}
+	public Metodo getMetodo() {
+		return this.metodo;
+	}
+	
+}
+
+class InfoDefTipo {
+	private String id;
+	private Tipo t;
+	
+	public InfoDefTipo (String id, Tipo t) {
+		this.id = id;
+		this.t = t;
+	}	
+	public String toString() {
+		return ""+ this.t;
+	}
 }
 
 /**
@@ -385,34 +465,5 @@ class Booleano{
     
     public boolean getValue(){
         return this.b;
-    }
-}
-
-class DVariable{
-    private TablaSim ts;
-    private List<Tipo> lt;
-    
-    public DVariable(TablaSim t, List<Tipo> ls){
-        this.ts = t;
-        this.lt = ls;
-    }
-    
-    public DVariable(){
-        this.ts = new TablaSim(null);
-        this.lt = new LinkedList<Tipo>();
-    }
-    
-    public void add(Tipo t, String str){
-        int k = (this.ts.isDefinedLocally(str)) ? 1 : 0;
-        this.ts.add(str, new Informacion(str, t, null, k));
-        if( k==0 ) this.lt.add(t);
-    }
-    
-    public TablaSim getTS(){
-        return this.ts;
-    }
-    
-    public List<Tipo> getLT(){
-        return this.lt;
     }
 }
