@@ -23,9 +23,12 @@ import java.util.*;
 	Verificacion de errores de  tipos compuestos
 	Verificacion de errores de  tipos nuevos, definidos antes de usar
  */
-action code {:
-    Bloque bloque = (Misc.acumulador != null)? Misc.acumulador : new Bloque();	
-    boolean noError = true;
+action code {:	
+	int ib = 0;
+    Bloque bloque = (Misc.acumulador != null)? Misc.acumulador : new Bloque(++ib);	
+	boolean noError = true;	
+	boolean proc = false;
+	
 :}
 
 /**
@@ -98,7 +101,8 @@ non terminal inicio;
 non terminal Bloque bloq;
 non terminal Bloque lInst;
 non terminal Inst inst, Decl, SubProg, iDeclA, iAsig, iSi, iSino, 
-				iHacer, iLlamada, iDefTipo;
+				iHacer, iDefTipo;
+non terminal InstLlamada iLlamada;
 non terminal Expresion expr, fact;
 non terminal Bloque inicB, finB;
 non terminal Tipo tipo, tipoG, tipoArr, tipoReg, tipoVan;
@@ -106,18 +110,15 @@ non terminal TipoF tipoB;
 non terminal LinkedList arreglo, Lelem, LParam;
 non terminal Proc;
 non terminal Func;
-non terminal Param;
-non terminal ParamE;
-non terminal ParamES;
-non terminal ParamS;
-non terminal TablaSim LVar;
+non terminal Metodo Metodo;
+non terminal LinkedList LVar;
 non terminal iniBProc;
 non terminal LCorchN;
 non terminal LCorch;
 non terminal TokenValue Var;
 non terminal LValue LVal;
 non terminal discr;
-non terminal lSubProgs;
+non terminal LSubProg;
 non terminal HashMap lDiscr;
 non terminal TablaSim LC;
 
@@ -136,8 +137,9 @@ precedence left PUNTO;
 /**
  * Gramatica del lenguaje.
  */
-inicio	::= COMIENZO bloq:b FIN
+inicio	::= LSubProg COMIENZO bloq:b FIN
         {: 	//if (noError)
+				//System.out.println("INICIO bloque: "+bloque.getId());
 				b.imprimirB(0);
 			
 		:}
@@ -147,10 +149,20 @@ inicio	::= COMIENZO bloq:b FIN
 bloq    ::= inicB lInst finB:b {: RESULT = b; :}
         ;
 /** Inicio de un Bloque */
-inicB   ::= {: bloque = new Bloque(bloque, true); :}
+inicB   ::= {: 	//System.out.println("INICBLOQUE ANTES bloque: "+bloque.getId());
+				if (!proc)
+					bloque = new Bloque(bloque, true, ++ib); 
+				proc = false;
+				//System.out.println("INICBLOQUE DESPUES bloque: "+bloque.getId());:}
         ;
 /** Fin de un Bloque */
-finB    ::= {: Bloque b = bloque; bloque = bloque.getParent(); RESULT = b; :}
+finB    ::= {: 	Bloque b = bloque; 
+				if (bloque.getParent() != null)
+					bloque = bloque.getParent(); 
+				RESULT = b; 
+				
+				//System.out.println("FINBLOQUE bloque: "+bloque.getId());
+			:}
         ;
 /** Lista de Instrucciones */
 lInst	::= lInst inst:i 	{: bloque.agregarInst(i); :}
@@ -165,7 +177,6 @@ inst	::= Decl:i	PYCOMA  	{: RESULT = i; :}
         |   iHacer:i            {: RESULT = i; :}
         |   iLlamada:i	PYCOMA  {: RESULT = i; :}	
 		|	iDefTipo			{: RESULT = null; :}
-		|	SubProg				{: RESULT = null; :}
         ;
 /** Declaracion */
 Decl	::= tipo:t ID:i
@@ -178,9 +189,11 @@ Decl	::= tipo:t ID:i
 			else if (t.equals(TipoF.BOOL)) 
 				info.setValor(new Booleano(false));*/
 			noError = noError && inst.esCorrecta(bloque,info, i.lineBegin+1);			
-			if (bloque.getTS().getLocally(i.text) == null) 
+			if (bloque.getTS().getLocally(i.text) == null) {
 				bloque.getTS().add(i.text ,info);
-                    RESULT = null;
+			//System.out.println("DECL bloque: "+bloque.getId());
+            }
+			RESULT = null;
         :}				
         ;
 
@@ -201,15 +214,17 @@ iDeclA	::= tipo:t ID:i ASIGNACION:a expr:e
 /** Instruccion de Asignacion */
 iAsig	::= LVal:d ASIGNACION:a expr:e
         {: 	InstAsig i = new InstAsig(d , e); 
-			Informacion info = new Informacion(d.obtenerId(),TipoF.INT,e,0);			
+			Informacion info = new Informacion(d.obtenerId(),TipoF.INT,e,0);
 			noError = noError && i.esCorrecta(bloque, info, a.lineBegin+1);
 			RESULT = i; 
+			
 			//chequear que el LValue exista
         :}
         ;
 /** Instruccion Condicional */		
 iSi	::= SI APARENT expr:e CPARENT bloq:l FINSI
-		{: RESULT = new InstIf(e, l ); :}
+		{: 	System.out.println("IF bloque: "+bloque.getId());
+			RESULT = new InstIf(e, l ); :}
         ;
 /** Instruccion Condicional con flujo alterno */		
 iSino 	::= SI APARENT expr:e CPARENT bloq:l1 SINO bloq:l2 FINSI
@@ -221,31 +236,51 @@ iHacer	::= HACER APARENT expr:e CPARENT bloq:l FINHACER
         ;
 /** Instruccion de llamada a un procedimiento */		
 iLlamada::=	ID:i APARENT LParam:l CPARENT
-		{:	if (!bloque.getTS().isDefined(i.text)) {
+		{:	
+			if (!bloque.getTS().isDefined(i.text)) {
 				noError = noError & false;
 				System.out.println("ERROR (linea "+(i.lineBegin+1)+
 					") El subprograma '"+i.text+"' no ha sido definido.");
-			} else				
-				RESULT = new InstProc(i.text, l);
+			} else {
+				Informacion info = bloque.getTS().get(i.text);
+				InfoSub is = (InfoSub)info.getValor();
+				boolean ok = is.chequearParams(l, bloque,i.lineBegin+1);
+				noError = noError && ok;					
+			}	
+				RESULT = new InstLlamada(i.text, l);
 			
 		:}
 		;
 		
-iDefTipo::=	TIPODATO ID IGUAL tipo FINT
+iDefTipo::=	TIPODATO ID:i IGUAL tipo:t FINT
+		{:
+			InfoDefTipo inf = new InfoDefTipo(i.text, t);
+			Tipo tipo = new TBasico(TipoF.NEWTYPE);
+			Informacion info = new Informacion(i.text, tipo, inf, 0);
+			bloque.getTS().add(i.text, info);
+		:}
 		;
+		
+/**Lista de Sibprogramas*/
+LSubProg::=	SubProg LSubProg
+		|
+		;
+		
 /** Definicion de subprograma */		
 SubProg	::=	Proc	{: RESULT = null; :}
 		|	Func	{: RESULT = null; :}
 		;
 /** Definicion de Procedimiento */				
-Proc	::= PROC ID:i iniBProc APARENT Param CPARENT lInst:l finB:b FINPROC
-			{:	if (bloque.getTS().get(i.text) != null) {
+Proc	::= PROC ID:i iniBProc APARENT LVar CPARENT lInst:l finB:b FINPROC
+			{:	
+				if (bloque.getTS().get(i.text) != null) {
 					Informacion info = bloque.getTS().get(i.text);
 					InfoSub is = (InfoSub)info.valor;				
 					is.setBloque(b);
 					info.setValor(is);
 					bloque.getTS().add(i.text, info);
-				}
+					proc = true;
+				} 				
 			:}
 		;
 /** Definicion de Funcion */					
@@ -254,50 +289,36 @@ Func	::= FUNC tipo ID:i iniBProc APARENT LVar CPARENT lInst:l finB:b FINFUNC
 					Informacion info = bloque.getTS().get(i.text);
 					InfoSub is = (InfoSub)info.valor;				
 					is.setBloque(b);
-					info.setValor(is);				
+					info.setValor(is);						
 					bloque.getTS().add(i.text, info);
 				}
 			:}
 		;
 /** Creacion del bloque de un subprograma */	
-iniBProc::=	{: 	bloque = new Bloque(bloque, false); :}
+iniBProc::=	{: 	
+				bloque = new Bloque(bloque, false, ++ib); 
+			:}
 		;
-/** Parametros de un procedimiento */		
-Param	::=	ParamE PYCOMA ParamES PYCOMA ParamS
-		|	ParamE:p1 PYCOMA ParamS
-		|	ParamES:p1 PYCOMA ParamS
-		|	ParamE:p1 PYCOMA ParamES
-		|	ParamE
-		|	ParamES
-		|	ParamS
-		;
-/** Parametros de entrada de un procedimiento */
-ParamE	::=	ENTRADA DOSPUNTOS LVar //Se supone que preparser ya proceso esto
-		;
-/** Parametros de entrada/salida de un procedimiento */		
-ParamES	::=	ENTSAL DOSPUNTOS LVar  //Se supone que preparser ya proceso esto
-		;
-/** Parametros de salida de un procedimiento */		
-ParamS	::=	SALIDA DOSPUNTOS LVar  //Se supone que preparser ya proceso esto
-		;
-/** Lista de parametros (tipo, identificador) */	//TS
-LVar	::=	LVar :ts COMA tipo:t ID:i
-                    {:	Informacion info = new Informacion(i.text, t, null, 0);
-                        ts.add(i.text, info);
-                        RESULT = ts;
-			//bloque.getTS().add(i.text, info);
-                        
-                    :}
-            |	tipo:t ID:i
-                    {: 	
-                        Informacion info = new Informacion(i.text, t, null, 0);
-                        TablaSim ts = new TablaSim(null);
-                        ts.add(i.text, info);
-                        RESULT = ts;    
-                            //bloque.getTS().add(i.text, info);
-                    :}
-            ;
 
+LVar	::=	LVar:lv COMA tipo:t ID:i DOSPUNTOS Metodo:m
+			{:
+				Informacion info = new Informacion(i.text, t, null, 0);
+				bloque.getTS().add(i.text, info);
+				
+			:}
+		|	tipo:t ID:i DOSPUNTOS Metodo:m
+			{:
+				Informacion info = new Informacion(i.text, t, null, 0);
+				bloque.getTS().add(i.text, info);
+				
+			:}
+		;
+
+Metodo	::=	ENTRADA		{: RESULT = Metodo.E; :}
+		|	SALIDA		{: RESULT = Metodo.S; :}
+		|	ENTSAL		{: RESULT = Metodo.ES; :}
+		;
+		
 /** Definicion de Expresion */	
 expr	::= expr:e1 IGUAL expr:e2
 		{:  RESULT = new ExprBin(e1, OperadorB.IGUAL, e2); :}
@@ -354,13 +375,18 @@ fact	::= APARENT expr:e CPARENT
 			noError = noError && e.esCorrecta(bloque, 0); 	//pasar numero de linea
 			RESULT = e;
 		:}
-		|	ID:i APARENT LParam CPARENT	
         |   CIERTO:c 
 		{: RESULT= new Factor(TipoF.BOOL, new Booleano(true)); :}
         |   FALSO:c 
 		{: RESULT= new Factor(TipoF.BOOL, new Booleano(false)); :}		
         |   arreglo:l
-		{: RESULT = new Arreglo(TipoF.ARRAY, 0, l); :}
+		{: 	
+			Tipo t = ((Expresion)(l.get(0))).getTipo(bloque);	//todos deberian ser del mismo tipo
+			RESULT = new Arreglo(t, 0, l); 
+		:}
+		|	iLlamada:i
+		{:	bloque.getTS().get(i.getId());	//chequear que solo sea FUNC, devolver factor del tipo de la func
+		:}
         ;
 
 LVal	::=	LVal:l ACORCH expr:e CCORCH 	// expr debe ser de tipo INT
@@ -382,11 +408,6 @@ LParam	::=	LParam:l COMA expr:e
 			RESULT = l;
 		:}
 		;
-/** Tipos de Datos */
-//tipoG	::=	tipo:t			{: RESULT = t; :}
-//		|	LCorchN tipo	{: RESULT = TipoF.ARRAY; :}
-//		|	LCorch tipo		{: RESULT = TipoF.ARRAY; :}
-//		;
 
 /** Tipos de Datos */		
 tipo    ::= tipoB:t     
@@ -422,16 +443,16 @@ LC		::=	tipo:t ID:i
 		:}
         ;
 
-/* Variante */
+/* Variante 
 tipoVan ::= REGISTRO LVar:ts COMA CASO tipo:t ID:i ES lDiscr:hm FINREG //Lvar ts comun
 			{: 
 				Informacion info = new Informacion(i.text, t, null, 0);
 				ts.add(i.text,info);
 				RESULT = new TVariante(ts,i.text, (HashMap<Object,TablaSim>)hm); 
 			:}
-        ;
+        ;*/
 
-/** Definicion de un caso del discriminante */
+/** Definicion de un caso del discriminante *//*
 lDiscr	::= lDiscr:hm fact:f APARENT LVar:ts CPARENT    //LVar tabla de sim caso
                 {: 
                     if(!hm.containsKey(f)){
@@ -445,21 +466,22 @@ lDiscr	::= lDiscr:hm fact:f APARENT LVar:ts CPARENT    //LVar tabla de sim caso
                     hm.put(f,ts);
                     RESULT = hm;
                 :}
-        ;
+        ;*/
 
 /** Contenido de un arreglo */	
-arreglo	::= ACORCH Lelem:l CCORCH		{: RESULT = l; :}
+arreglo	::= ACORCH Lelem:l CCORCH		//chequear q sean del mismo tipo los elem
+		{: RESULT = l; :}
 		;
 
 /** Lista de elementos */			
-Lelem	::= Lelem:L COMA fact:f
-                {:	L.add(f);
-                        RESULT = L;
-                :}
-            |	fact:f
-                {: 	LinkedList<Expresion> L = new LinkedList<Expresion>();
-                        L.add(f);
-                        RESULT = L;
-                :}
-                ;
+Lelem	::= Lelem:L COMA fact:f			
+		{:	L.add(f);
+				RESULT = L;
+		:}
+        |	fact:f
+		{: 	LinkedList<Expresion> L = new LinkedList<Expresion>();
+				L.add(f);
+				RESULT = L;
+		:}
+		;
 

@@ -91,7 +91,7 @@ non terminal inicio;
 non terminal Tipo tipo;
 non terminal TipoF tipoB;
 non terminal TablaSim LC;
-non terminal SubProgs;
+non terminal LSubProg;
 non terminal SubProg;
 non terminal Proc;
 non terminal Func;
@@ -99,12 +99,30 @@ non terminal List Param;
 non terminal List ParamE;
 non terminal List ParamES;
 non terminal List ParamS;
-non terminal DVariable LVar;
+non terminal LinkedList LVar;
+non terminal Metodo Metodo;
 non terminal Object fact;
 non terminal HashMap lDiscr;
 non terminal inicializar;
 non terminal loquesea;
 non terminal todo;
+non terminal lInst;
+non terminal inst;
+non terminal Decl;
+non terminal iDeclA;
+non terminal iAsig;
+non terminal iSi;
+non terminal iSino;
+non terminal iHacer;
+non terminal iLlamada;
+non terminal iDefTipo;
+non terminal expr;
+non terminal LVal;
+non terminal LParam;
+non terminal arreglo;
+non terminal tipoVan;
+non terminal Lelem;
+
 
 /**
   * Orden de Precedencia.
@@ -119,169 +137,153 @@ precedence left POR, ENTRE, DIV, MOD;
 /**
  * Gramatica del lenguaje.
  */
-inicio	::= inicializar COMIENZO loquesea FIN
+inicio	::= inicializar LSubProg COMIENZO lInst FIN
         ;
-
-inicializar ::= {: Misc.acumulador = new Bloque(); bloque = Misc.acumulador; :}
+		
+inicializar ::= {: Misc.acumulador = new Bloque(100); bloque = Misc.acumulador; :}
             ;
 
+/** Lista de Instrucciones */
+lInst	::= lInst inst:i
+        |   inst:i
+        ;
+		
+/** Tipos de Instrucciones */		
+inst	::= Decl:i	PYCOMA  	
+        |   iDeclA:i	PYCOMA  
+        |   iAsig:i     PYCOMA  
+        |   iSi:i               
+        |   iSino:i             
+        |   iHacer:i            
+        |   iLlamada:i	PYCOMA  
+		|	iDefTipo			
+        ;
+
+/** Declaracion */
+Decl	::= tipo:t ID:i		
+        ;
+
+/** Declaracion con Asignacion*/
+iDeclA	::= tipo:t ID:i ASIGNACION:a expr:e		
+        ;
+/** Instruccion de Asignacion */
+iAsig	::= LVal:d ASIGNACION:a expr:e
+        ;
+/** Instruccion Condicional */		
+iSi		::= SI APARENT expr:e CPARENT lInst:l FINSI
+        ;
+/** Instruccion Condicional con flujo alterno */		
+iSino 	::= SI APARENT expr:e CPARENT lInst:l1 SINO lInst:l2 FINSI
+        ;
+/** Instruccion de Iteracion */		
+iHacer	::= HACER APARENT expr:e CPARENT lInst:l FINHACER
+        ;
+/** Instruccion de llamada a un procedimiento */	
+iLlamada::=	ID:i APARENT LParam:l CPARENT
+		;
+
+/** Instruccion de definicion de nuevo tipo */
+iDefTipo::=	TIPODATO ID:i IGUAL tipo:t FINT
+		;
+
+LSubProg::=	SubProg LSubProg
+			|
+			;
+			
 SubProg	::=	Proc
         |	Func
         ;
 		
-Proc	::= PROC ID:i APARENT Param:p CPARENT loquesea FINPROC
-                {:	
-                        
-                    //if( bloque.getTS().isDefined(i.text)){
-                    //    bloque.getTS().get(i.text).setStatus(1);
-                    //}else{
-                        InfoSub is = new InfoSub(null, p);
-                        Informacion info = new Informacion(i.text, TipoF.PROC, is, 0);
-                        bloque.getTS().add(i.text, info);
-                    //}
-                        
-                :}
+Proc	::= PROC ID:i APARENT LVar:ps CPARENT lInst FINPROC
+			{:	
+				
+				if( bloque.getTS().isDefined(i.text)){
+				    bloque.getTS().get(i.text).setStatus(1);
+					System.out.println("ERROR (linea "+(i.lineBegin+1)+
+					") El subprograma '"+i.text+"' ya esta definido.");
+				}else{
+					InfoSub is = new InfoSub(i.text,null,null,ps, TipoF.PROC, null);
+					Informacion info = new Informacion(i.text, TipoF.PROC, is, 0);
+					bloque.getTS().add(i.text, info);
+				}		
+				
+			:}
 		;
 				
-Func	::= FUNC tipo ID:i APARENT LVar:dv CPARENT loquesea FINFUNC
-                {:	
-                    //if( bloque.getTS().isDefined(i.text)){
-                        bloque.getTS().get(i.text).setStatus(1);
-                    //}else{
-                        InfoSub is = new InfoSub(null, dv.getLT());
-                        Informacion info = new Informacion(i.text, TipoF.PROC, is, 0);
-                        bloque.getTS().add(i.text, info);
-                    //}
-                :}
+Func	::= FUNC tipo:t ID:i APARENT LVar:ps CPARENT lInst FINFUNC
+			{:	
+				if( bloque.getTS().isDefined(i.text)){
+					bloque.getTS().get(i.text).setStatus(1);
+				}else{
+					InfoSub is = new InfoSub(i.text,null, null, ps, TipoF.FUNC, t);
+					Informacion info = new Informacion(i.text, TipoF.FUNC, is, 0);
+					bloque.getTS().add(i.text, info);
+				}
+			:}
+		;
+
+LVar	::=	LVar:ps COMA tipo:t ID:i DOSPUNTOS Metodo:m
+		{:	
+			Param p = new Param (i.text, t, m);
+			ps.add(p);
+			RESULT = ps;
+		:}
+		|	tipo:t ID:i DOSPUNTOS Metodo:m
+		{: 	
+			Param p = new Param(i.text,t,m);
+			LinkedList<Param> ps = new LinkedList<Param>();
+			ps.add(p);
+			RESULT = ps;
+        :}
+		;
+
+Metodo	::=	ENTRADA		{: RESULT = Metodo.E; :}
+		|	SALIDA		{: RESULT = Metodo.S; :}
+		|	ENTSAL		{: RESULT = Metodo.ES; :}
 		;
 		
-Param	::=	ParamE:p1 PYCOMA ParamES:p2 PYCOMA ParamS:p3    
-                    {:
-                        p1.addAll(p2);
-                        p1.addAll(p3);
-                        RESULT = p1; 
-                    :}
-		|	ParamE:p1 PYCOMA ParamS:p2
-                    {:
-                        p1.addAll(p2);
-                        RESULT = p1; 
-                    :}
-		|	ParamES:p1 PYCOMA ParamS:p2
-                    {:
-                        p1.addAll(p2);
-                        RESULT = p1; 
-                    :}
-		|	ParamE:p1 PYCOMA ParamES:p2
-                    {:
-                        p1.addAll(p2);
-                        RESULT = p1; 
-                    :}
-		|	ParamE:p    {: RESULT = p; :}
-		|	ParamES:p   {: RESULT = p; :}
-		|	ParamS:p    {: RESULT = p; :}
-		;
+/** Definicion de Expresion */	
+expr	::= expr:e1 IGUAL expr:e2		
+        |   expr:e1 DIF expr:e2
+        |   expr:e1 OLOG expr:e2
+        |   expr:e1 YLOG expr:e2
+        |   expr:e1 MAYOR expr:e2
+        |   expr:e1 MENOR expr:e2
+        |   expr:e1 MAYORIGUAL expr:e2
+        |   expr:e1 MENORIGUAL expr:e2
+        |   expr:e1 MAS expr:e2
+        |   expr:e1 MENOS expr:e2
+        |   expr:e1 ENTRE expr:e2
+        |   expr:e1 POR expr:e2
+        |   expr:e1 DIV expr:e2
+        |   expr:e1 MOD expr:e2
+        |   fact:f
+        |   expr:e PUNTO expr   
+        ;
+/** Definicion de Factor */		
+fact	::= APARENT expr:e CPARENT 
+        |   ENTERO:n 
+        |   MENOS fact:f 
+        |   REAL:n 
+        |   TECHO APARENT fact:f CPARENT
+        |   PISO APARENT fact:f CPARENT
+        |   REDONDEO APARENT fact:f CPARENT
+        |   NOLOG fact:f
+        |   LVal:i
+        |   CIERTO:c 
+        |   FALSO:c 
+        |   arreglo:l
+		|	iLlamada:i
+        ;
 
-ParamE	::=	ENTRADA DOSPUNTOS LVar:dv
-                {: 
-                    List<TParam> lp = new LinkedList<TParam>();
-                    for(int i=0; i< dv.getLT().size(); i++){
-                        lp.add(new TParam(dv.getLT().get(i),TipoES.IN));
-                    }
-                    RESULT = lp; 
-                :}
+LVal	::=	LVal:l ACORCH expr:e CCORCH 
+		|	LVal:l PUNTO ID:i
+		|	ID:i
 		;
 		
-ParamES	::=	ENTSAL DOSPUNTOS LVar:dv
-                {: 
-                    List<TParam> lp = new LinkedList<TParam>();
-                    for(int i=0; i< dv.getLT().size(); i++){
-                        lp.add(new TParam(dv.getLT().get(i),TipoES.IN_OUT));
-                    }
-                    RESULT = lp; 
-                :}
-		;
-		
-ParamS	::=	SALIDA DOSPUNTOS LVar:dv
-                {: 
-                    List<TParam> lp = new LinkedList<TParam>();
-                    for(int i=0; i< dv.getLT().size(); i++){
-                        lp.add(new TParam(dv.getLT().get(i),TipoES.OUT));
-                    }
-                    RESULT = lp; 
-                :}
-		;
-
-LVar	::=	LVar:dv COMA tipo:t ID:i
-                    {:	
-                            //l.add(new TBasico(t));
-                            //RESULT = l;
-                            dv.add(t, i.text);
-                            RESULT = dv;
-                    :}
-		|	tipo:t ID:i
-                    {: 	
-                            //List l = new LinkedList();
-                            //l.add(new TBasico(t));
-                            //RESULT = l; 
-                            DVariable aux = new DVariable();
-                            aux.add(t,i.text);
-                            RESULT = aux;
-                    :}
-		;
-
-loquesea ::= loquesea todo
-            |   todo
-            ;
-
-todo 	::= SubProg
-		|	ENTRADA
-		|	ENTSAL
-		|	SALIDA
-		|	DOSPUNTOS
-		|	DECLENTERO
-		|	DECLREAL
-		|	DECLBOOL
-		|	CASO
-		|	ES
-		|	APARENT
-		|	CPARENT
-		|	ACORCH
-		|	CCORCH
-		|	COMA
-		|	PUNTO
-		|	MAS
-		|	MENOS
-		|	POR
-		|	ENTRE
-		|	DIV
-		|	MOD
-		|	TECHO
-		|	PISO
-		|	REDONDEO
-		|	YLOG
-		|	OLOG
-		|	NOLOG
-		|	IGUAL
-		|	DIF
-		|	MAYOR
-		|	MENOR
-		|	MAYORIGUAL
-		|	MENORIGUAL
-		|	ASIGNACION
-		|	SI
-		|	SINO
-		|	FINSI
-		|	HACER
-		|	FINHACER
-		|	PYCOMA
-		|	CIERTO
-		|	FALSO
-		|	ENTERO
-		|	ID
-		|	REAL
-		|	REGISTRO
-		|	FINREG
-		|	TIPODATO ID IGUAL tipo FINT
+/** Lista de parametros que se pasan al llamar a un subprograma */
+LParam	::=	LParam:l COMA expr:e
+		|	expr:e
 		;
 
 /** Tipos de Datos */		
@@ -300,7 +302,7 @@ tipo    ::= tipoB:t
         ;
 
 /* Tipos Basicos */
-tipoB   ::= DECLENTERO:t    {: RESULT = TipoF.INT; :}
+tipoB   ::= DECLENTERO:t    {: System.out.println("hola");RESULT = TipoF.INT; :}
         |   DECLREAL:t      {: RESULT = TipoF.FLOAT;  :}
         |   DECLBOOL:t      {: RESULT = TipoF.BOOL; :} 
         ;
@@ -317,3 +319,21 @@ LC		::=	tipo:t ID:i
 			RESULT = ts; 
 		:}
         ;
+		
+/**Variante */
+//tipoVan ::= REGISTRO LVar:ts COMA CASO tipo:t ID:i ES lDiscr:hm FINREG
+  //      ;
+
+/** Definicion de un caso del discriminante */
+//lDiscr	::= lDiscr:hm fact:f APARENT LVar:ts CPARENT 
+//        |   fact:f APARENT LVar:ts CPARENT
+//        ;	
+
+/** Contenido de un arreglo */	
+arreglo	::= ACORCH Lelem:l CCORCH
+		;
+
+/** Lista de elementos */			
+Lelem	::= Lelem:L COMA fact:f
+            |	fact:f
+            ;

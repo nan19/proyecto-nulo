@@ -33,23 +33,21 @@ public class Prueba {
         FileReader archivo1 = null;
 	try {
 	    archivo0 = new FileReader(args[0]);
-            archivo1 = new FileReader(args[0]);
+        archivo1 = new FileReader(args[0]);
 	} catch (FileNotFoundException ex) {
 	    System.err.println("Archivo: " + args[0] + " no encontrado.");
 	    System.exit(-1);
 	}
         
-        preparser pre = new preparser(new Yylex(archivo0));
-        
-	parser P = new parser(new Yylex(archivo1));
-        
+    preparser pre = new preparser(new Yylex(archivo0));        
+	parser P = new parser(new Yylex(archivo1));        
 
 	Symbol root = null;
-        Symbol r = null;
+    Symbol r = null;
 
 	try {
-            r = pre.parse();
-	    root = P.parse();
+        r = pre.parse();
+		root = P.parse();
             
 	} catch (Exception ex){
 	    System.out.println(ex);

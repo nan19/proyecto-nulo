@@ -28,6 +28,7 @@ enum TipoF {
     BOOL(1, "booleano"),
     PROC(0, "procedimiento"),
     FUNC(0, "funcion"),
+    NEWTYPE(0, "nuevo tipo"),
     VOID(0, "VOID"),
     LVAL(0, "LVAL"),
     ARRAY(0, "ARRAY"),
@@ -60,6 +61,7 @@ public abstract class Tipo {
     public abstract int getSize();
     @Override
     public abstract String toString();
+	public abstract boolean comparar(Tipo t);
 }
 
 
@@ -76,6 +78,15 @@ class TBasico extends Tipo{
     public int getSize() {
         return this.tipo.getSize();
     }
+	public boolean comparar(Tipo t2) {	
+		/*Class c1 = this.getClass();
+		Class c2 = t2.getClass();
+		System.out.println(c1+"\n"+c2);
+		if (c1.equals(c2) )
+			return this.tipo.equals(((TBasico)t2).tipo);
+		else*/
+			return false;			
+	}
     
 }
 
@@ -91,11 +102,16 @@ class TArreglo extends Tipo{
 	public String toString(){
         return "Arreglo ["+this.size+ "] de "+this.tipo;
     }
-
+	public Tipo getTipo() {
+		return this.tipo;
+	}
     @Override
     public int getSize() {
         return this.size * this.tipo.getSize();
     }
+	public boolean comparar(Tipo t2) {		
+		return false;
+	}
         
 }
 
@@ -113,6 +129,10 @@ class TRegistro extends Tipo{
     public int getSize() {
         return this.tabla.getSize();
     }
+	public boolean comparar(Tipo t2) {
+		
+		return false;
+	}
         
 }
 class TVariante extends Tipo{
@@ -132,12 +152,21 @@ class TVariante extends Tipo{
         }
         return "Variante "+this.tabla+" casos:\n"+aux+"finv\n";
     }
-
     @Override
     public int getSize() {
         int maximo = Misc.max(this.discr.values());
         return maximo + this.tabla.getSize();
     }
+	public boolean comparar(Tipo t2) {
+		
+		return false;
+	}
+	public boolean compDisc(TVariante t2) {
+		boolean ok;
+		ok = this.disc.equals(t2.disc);
+		ok = ok && (this.discr.equals(t2.discr));
+		return ok;
+	}
         
 }
 enum TipoB{
@@ -152,25 +181,3 @@ enum TipoES{
     OUT,
     IN_OUT
 }
-
-class TParam extends Tipo{
-    private Tipo tipo;
-    private TipoES es;
-    
-    public TParam(Tipo t, TipoES e){
-        this.tipo = t;
-        this.es = e;
-    }
-
-    @Override
-    public int getSize() {
-        return this.tipo.getSize();
-    }
-
-    @Override
-    public String toString() {
-        return ""+ this.es + this.tipo;
-    }
-    
-}
-
