@@ -290,11 +290,17 @@ LParam	::=	LParam:l COMA expr:e
 tipo    ::= tipoB:t     
 			{: RESULT = new TBasico(t); :}
         |   ACORCH ENTERO:i CCORCH tipo:t   
-			{: RESULT = new TArreglo(t,i); :}	//tamanio del arreglo?
+			{: RESULT = new TArreglo(t,i); :}
         |   ACORCH CCORCH tipo:t   
 			{: RESULT = new TArreglo(t,-1); :}
         |   REGISTRO LC:ts FINREG
 			{: RESULT = new TRegistro(ts); :}
+		|	REGISTRO LC:ts COMA CASO tipo:t ID:i ES lDiscr:hm FINREG
+			{: 
+				Informacion info = new Informacion(i.text, t, null, 0);
+				ts.add(i.text,info);
+				RESULT = new TVariante(ts,i.text, (HashMap<Object,TablaSim>)hm); 
+			:}
 		|	ID:i
 			{: //chequear en TS y obtener arbol de tipo
 			
@@ -302,7 +308,7 @@ tipo    ::= tipoB:t
         ;
 
 /* Tipos Basicos */
-tipoB   ::= DECLENTERO:t    {: System.out.println("hola");RESULT = TipoF.INT; :}
+tipoB   ::= DECLENTERO:t    {: RESULT = TipoF.INT; :}
         |   DECLREAL:t      {: RESULT = TipoF.FLOAT;  :}
         |   DECLBOOL:t      {: RESULT = TipoF.BOOL; :} 
         ;
@@ -319,15 +325,22 @@ LC		::=	tipo:t ID:i
 			RESULT = ts; 
 		:}
         ;
-		
-/**Variante */
-//tipoVan ::= REGISTRO LVar:ts COMA CASO tipo:t ID:i ES lDiscr:hm FINREG
-  //      ;
 
-/** Definicion de un caso del discriminante */
-//lDiscr	::= lDiscr:hm fact:f APARENT LVar:ts CPARENT 
-//        |   fact:f APARENT LVar:ts CPARENT
-//        ;	
+/** Definicion de casos del discriminante */
+lDiscr	::= lDiscr:hm fact:f APARENT LC:ts CPARENT
+			{: 
+				if(!hm.containsKey(f)){
+					hm.put(f,ts);
+				}
+				RESULT = hm;
+			:}
+        |   fact:f APARENT LC:ts CPARENT
+			{:
+				HashMap<Object,TablaSim> hm = new HashMap<Object,TablaSim>();
+				hm.put(f,ts);
+				RESULT = hm;
+			:}
+        ;
 
 /** Contenido de un arreglo */	
 arreglo	::= ACORCH Lelem:l CCORCH

@@ -79,12 +79,11 @@ class TBasico extends Tipo{
         return this.tipo.getSize();
     }
 	public boolean comparar(Tipo t2) {	
-		/*Class c1 = this.getClass();
+		Class c1 = this.getClass();
 		Class c2 = t2.getClass();
-		System.out.println(c1+"\n"+c2);
-		if (c1.equals(c2) )
+		if (c1.equals(c2) ) {
 			return this.tipo.equals(((TBasico)t2).tipo);
-		else*/
+		}else
 			return false;			
 	}
     
@@ -102,6 +101,12 @@ class TArreglo extends Tipo{
 	public String toString(){
         return "Arreglo ["+this.size+ "] de "+this.tipo;
     }
+	public void setTipo(Tipo tipo) {
+		this.tipo = tipo;
+	}
+	public void setSize(int size) {
+		this.size = size;
+	}
 	public Tipo getTipo() {
 		return this.tipo;
 	}
@@ -110,7 +115,14 @@ class TArreglo extends Tipo{
         return this.size * this.tipo.getSize();
     }
 	public boolean comparar(Tipo t2) {		
-		return false;
+		Class c1 = this.getClass();
+		Class c2 = t2.getClass();
+		//System.out.println("Tipo.java: clases "+c1+" "+c2);
+		//System.out.println("Tipo.java: subtipos "+this.tipo+" "+((TArreglo)t2).tipo);
+		if (c1.equals(c2) )
+			return this.tipo.comparar(((TArreglo)t2).tipo);
+		else
+			return false;	
 	}
         
 }
@@ -130,8 +142,12 @@ class TRegistro extends Tipo{
         return this.tabla.getSize();
     }
 	public boolean comparar(Tipo t2) {
-		
-		return false;
+		Class c1 = this.getClass();
+		Class c2 = t2.getClass();
+		if (c1.equals(c2) )
+			return this.tabla.equals(((TRegistro)t2).tabla);
+		else
+			return false;	
 	}
         
 }
@@ -158,8 +174,12 @@ class TVariante extends Tipo{
         return maximo + this.tabla.getSize();
     }
 	public boolean comparar(Tipo t2) {
-		
-		return false;
+		Class c1 = this.getClass();
+		Class c2 = t2.getClass();
+		if (c1.equals(c2) )
+			return this.tabla.equals(((TVariante)t2).tabla);
+		else
+			return false;
 	}
 	public boolean compDisc(TVariante t2) {
 		boolean ok;

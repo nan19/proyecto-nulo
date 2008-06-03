@@ -217,24 +217,24 @@ class ExprBin extends Expresion {
         switch(this.Op){
             case AND:
             case OR:				
-				if (this.ExprDer.getTipo(c).equals(b) && 
-						this.ExprIzq.getTipo(c).equals(b)) {
+				if (this.ExprDer.getTipo(c).comparar(b) && 
+						this.ExprIzq.getTipo(c).comparar(b)) {
 					return new TBasico(TipoF.BOOL);
 				} else {					
 					return new TBasico(TipoF.ERROR);
 				}
             case IGUAL:
             case DESIGUAL:				
-				if ( (this.ExprDer.getTipo(c).equals(i) && 
-						this.ExprIzq.getTipo(c).equals(i)) ||
+				if ( (this.ExprDer.getTipo(c).comparar(i) && 
+						this.ExprIzq.getTipo(c).comparar(i)) ||
 					(this.ExprDer.getTipo(c).equals(f) && 
-						this.ExprIzq.getTipo(c).equals(f)) ||
+						this.ExprIzq.getTipo(c).comparar(f)) ||
 					(this.ExprDer.getTipo(c).equals(i) && 
-						this.ExprIzq.getTipo(c).equals(f)) ||
+						this.ExprIzq.getTipo(c).comparar(f)) ||
 					(this.ExprDer.getTipo(c).equals(f) && 
-						this.ExprIzq.getTipo(c).equals(i)) ||
+						this.ExprIzq.getTipo(c).comparar(i)) ||
 					(this.ExprDer.getTipo(c).equals(b) && 
-						this.ExprIzq.getTipo(c).equals(b)) )
+						this.ExprIzq.getTipo(c).comparar(b)) )
 					return new TBasico(TipoF.BOOL);
 				else
 					return new TBasico(TipoF.ERROR);
@@ -242,48 +242,48 @@ class ExprBin extends Expresion {
             case MENOR:
             case MAYORIGUAL:
             case MENORIGUAL:
-                if ( (this.ExprDer.getTipo(c).equals(i) && 
-						this.ExprIzq.getTipo(c).equals(i)) ||
-					(this.ExprDer.getTipo(c).equals(f) && 
-						this.ExprIzq.getTipo(c).equals(f)) ||
+                if ( (this.ExprDer.getTipo(c).comparar(i) && 
+						this.ExprIzq.getTipo(c).comparar(i)) ||
+					(this.ExprDer.getTipo(c).comparar(f) && 
+						this.ExprIzq.getTipo(c).comparar(f)) ||
 					(this.ExprDer.getTipo(c).equals(i) && 
-						this.ExprIzq.getTipo(c).equals(f)) ||
+						this.ExprIzq.getTipo(c).comparar(f)) ||
 					(this.ExprDer.getTipo(c).equals(f) && 
-						this.ExprIzq.getTipo(c).equals(i)) )
+						this.ExprIzq.getTipo(c).comparar(i)) )
 					return new TBasico(TipoF.BOOL);
 				else
 					return new TBasico(TipoF.ERROR);
             case MOD:
             case DIVE:			
-                if (((TBasico)(this.ExprDer.getTipo(c))).tipo.equals(TipoF.INT) && 
-						((TBasico)(this.ExprIzq.getTipo(c))).tipo.equals(TipoF.INT))
+                if (((TBasico)(this.ExprDer.getTipo(c))).comparar(i) && 
+						((TBasico)(this.ExprIzq.getTipo(c))).comparar(i))
 					return new TBasico(TipoF.INT);
 				else					
 					return new TBasico(TipoF.ERROR);
             case DIVR:
-				if ( (this.ExprDer.getTipo(c).equals(i) && 
-						this.ExprIzq.getTipo(c).equals(i)) ||
-					(this.ExprDer.getTipo(c).equals(f) && 
-						this.ExprIzq.getTipo(c).equals(f)) ||
+				if ( (this.ExprDer.getTipo(c).comparar(i) && 
+						this.ExprIzq.getTipo(c).comparar(i)) ||
+					(this.ExprDer.getTipo(c).comparar(f) && 
+						this.ExprIzq.getTipo(c).comparar(f)) ||
 					(this.ExprDer.getTipo(c).equals(i) && 
-						this.ExprIzq.getTipo(c).equals(f)) ||
+						this.ExprIzq.getTipo(c).comparar(f)) ||
 					(this.ExprDer.getTipo(c).equals(f) && 
-						this.ExprIzq.getTipo(c).equals(i)) )
+						this.ExprIzq.getTipo(c).comparar(i)) )
 					return new TBasico(TipoF.FLOAT);
 				else
 					return new TBasico(TipoF.ERROR);
             case SUMA:
             case RESTA:
             case MULT:
-                if (((TBasico)(this.ExprDer.getTipo(c))).tipo.equals(TipoF.INT) && 
-						((TBasico)(this.ExprIzq.getTipo(c))).tipo.equals(TipoF.INT))
+                if (((TBasico)(this.ExprDer.getTipo(c))).comparar(i) && 
+						((TBasico)(this.ExprIzq.getTipo(c))).comparar(i))
 					return new TBasico(TipoF.INT);
-				else if ( (((TBasico)(this.ExprDer.getTipo(c))).tipo.equals(TipoF.FLOAT) && 
-							((TBasico)(this.ExprIzq.getTipo(c))).tipo.equals(TipoF.FLOAT)) ||
-					(((TBasico)(this.ExprDer.getTipo(c))).tipo.equals(TipoF.INT) && 
-						((TBasico)(this.ExprIzq.getTipo(c))).tipo.equals(TipoF.FLOAT)) ||
-					(((TBasico)(this.ExprDer.getTipo(c))).tipo.equals(TipoF.FLOAT) && 
-						((TBasico)(this.ExprIzq.getTipo(c))).tipo.equals(TipoF.INT)) )
+				else if ( (((TBasico)(this.ExprDer.getTipo(c))).comparar(f) && 
+							((TBasico)(this.ExprIzq.getTipo(c))).comparar(f)) ||
+					(((TBasico)(this.ExprDer.getTipo(c))).comparar(i) && 
+						((TBasico)(this.ExprIzq.getTipo(c))).comparar(f)) ||
+					(((TBasico)(this.ExprDer.getTipo(c))).comparar(f) && 
+						((TBasico)(this.ExprIzq.getTipo(c))).comparar(i)) )
 					return new TBasico(TipoF.FLOAT);
 				else
 					return new TBasico(TipoF.ERROR);
@@ -436,9 +436,16 @@ class Factor extends Expresion {
 		}
     }
     public Tipo getTipo(Bloque c) {      
-        if (this.tipo.equals(TipoF.ID)) {			
+        if (this.tipo.equals(TipoF.ID)) {
+			System.out.println("Expresion.java: "+c.getTS().get((String)this.valor).tipo);
             return c.getTS().get((String)this.valor).tipo;
-        } else 					
+        } else if (this.tipo.equals(TipoF.LVAL)) {
+			//System.out.println("Expresion.java: "+c.getTS().get((String)this.valor).tipo);
+			if ( c.getTS().isDefinedLocally((((Identificador)(this.valor)).obtenerId())) )
+				return (c.getTS().get((((Identificador)(this.valor)).obtenerId()))).getTipo();
+			else
+				return new TBasico(TipoF.ERROR);				
+		}else 	
 			return new TBasico(this.tipo);
        
         }
@@ -503,7 +510,7 @@ class Identificador extends LValue {
 	}
 	public String obtenerId() {
 		return this.id;
-	}
+	}	
 }
 
 class Arreglo extends Expresion {
@@ -534,7 +541,20 @@ class Arreglo extends Expresion {
     public boolean esCorrecta(Bloque c, int line) {                      
             return true;        
     }
-    public Tipo getTipo(Bloque c) {
+	public void setTam(int tam) {
+		this.tam = tam;
+	}
+	public void setTipo(Tipo tipo) {
+		this.tipo = tipo;
+	}
+	public int getTam() {
+		return this.tam;
+	}
+    public Tipo getTipo(Bloque b) {
+		for(int i=0;i<this.listaElem.size();i++) {
+			if (!((this.listaElem.get(i).getTipo(b)).comparar(this.tipo)))
+				return new TBasico(TipoF.ERROR);
+		}		
         return new TArreglo(this.tipo,this.tam);
     }
 

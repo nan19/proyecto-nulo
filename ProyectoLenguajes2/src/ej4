@@ -1,5 +1,19 @@
-
+proc hola (entero a:e, real b:es, booleano c:s)
+	a:=1;
+finp
 comienzo
-registro entero a finr r;
+
+entero ok1 := 1+2 div 3 mod 5 -8 + (3*5);
+//entero nok1 := 1+2 / 3 mod 5 -8 + (3*5);
+//entero nok2 := 1+2 / 3 - 8 & cierto + (3*5);
+real ok2 :=1.0+2/5-(8.5*2.3);
+//real nok3 :=1.0+2/5-(8.5*2.3) & 3>2;
+booleano ok3 := cierto | falso & (3>2) | 5<=1;
+//booleano nok4 := cierto | falso & (3>2) | 5<=1<3 ;
+
+[] entero arr1;
+[] entero arr2 := [1,2,3];
+arr1 := [1,2,3];
+
 
 fin
