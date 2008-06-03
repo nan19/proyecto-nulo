@@ -257,7 +257,7 @@ class TablaSim{
     }
     public String toString() {
         String acum = "Tabla:\n";
-		Iterator k = this.tabla.keySet().iterator();
+        Iterator k = this.tabla.keySet().iterator();
         Iterator v = this.tabla.values().iterator();
         int j = 0;
         while(k.hasNext()){
@@ -352,7 +352,7 @@ class Informacion {
         this.status = status;
     }    
     public String toString(){
-        return nombre + " : " + tipo + " : " + valor;
+        return nombre + " : " + tipo + " : " + valor+": "+shift;
     }
     public void setShift(int shift) {
         this.shift = shift;
