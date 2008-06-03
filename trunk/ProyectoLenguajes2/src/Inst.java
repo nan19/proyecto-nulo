@@ -61,7 +61,7 @@ class Decl extends Inst {
 			System.out.println("ERROR (linea "+linea+") Variable '"+this.Var
 				+"' ya esta definida.");			
 			info.setStatus(1);
-			c.getTS().add(this.Var ,info);
+			//c.getTS().add(this.Var ,info);
 			return false;
 		} else 
 			return true;
@@ -124,6 +124,7 @@ class InstAsig extends Inst {
             ok = false;
         }
 		Tipo tipoE = this.E.getTipo(c);		
+		//System.out.println("Inst.java: tipo expr "+tipoE);
 		Tipo tipoV = c.getTS().get(var).tipo;
 		//chequeo de la expresion.
 		if (tipoE.equals(TipoF.ERROR)) {
@@ -133,23 +134,20 @@ class InstAsig extends Inst {
 		//chequeo de compatibilidad entre la expresion y la variable
 		Class c1 = tipoE.getClass();
 		Class c2 = tipoV.getClass();
-		if (!c1.equals(c2)) 
-			System.out.println("ERROR (linea "+linea+") La Asignacion a la variable '"+this.Variable+
+		if (!c1.equals(c2)) {
+			//System.out.println("Inst.java 1: "+tipoE);
+			System.out.println("1ERROR (linea "+linea+") La Asignacion a la variable '"+this.Variable+
 						"' no es posible. Los tipos no son compatibles.");
-		/*
-		if (!((TBasico)tipoV).tipo.equals(TipoF.NODEF)) {
-			if (((TBasico)tipoV).tipo.equals(TipoF.FLOAT)) {
-				if ( !(((TBasico)tipoE).tipo.equals(TipoF.FLOAT) || ((TBasico)tipoE).tipo.equals(TipoF.INT)) ) {
-					System.out.println("ERROR (linea "+linea+") La Asignacion a la variable '"+this.Variable+
+			ok = ok && false;
+		} else {
+			if (!(tipoE.comparar(tipoV))) {
+				//System.out.println("Inst.java 2 E: "+tipoE);
+				//System.out.println("Inst.java 2 V: "+tipoV);
+				System.out.println("2ERROR (linea "+linea+") La Asignacion a la variable '"+this.Variable+
 						"' no es posible. Los tipos no son compatibles.");
-					ok = false;
-				}
-			} else if (!(((TBasico)tipoV).tipo.equals(((TBasico)tipoE).tipo))) {
-				System.out.println("ERROR (linea "+linea+") La Asignacion a la variable '"+var+
-						"' no es posible. Los tipos no son compatibles.");
-				ok = false;
+				ok = ok && false;
 			}
-		}*/
+		}		
 		return ok;  	
     }
 

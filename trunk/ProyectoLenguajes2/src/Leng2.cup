@@ -117,7 +117,6 @@ non terminal LCorchN;
 non terminal LCorch;
 non terminal TokenValue Var;
 non terminal LValue LVal;
-non terminal discr;
 non terminal LSubProg;
 non terminal HashMap lDiscr;
 non terminal TablaSim LC;
@@ -181,17 +180,10 @@ inst	::= Decl:i	PYCOMA  	{: RESULT = i; :}
 /** Declaracion */
 Decl	::= tipo:t ID:i
 		{:  Decl inst = new Decl(t, i.text );	
-			Informacion info = new Informacion(i.text,t,null, 0);
-			/*if (t.equals(TipoF.INT)) 
-				info.setValor(0);
-			else if (t.equals(TipoF.FLOAT)) 
-				info.setValor(0.0);
-			else if (t.equals(TipoF.BOOL)) 
-				info.setValor(new Booleano(false));*/
+			Informacion info = new Informacion(i.text,t,null, 0);			
 			noError = noError && inst.esCorrecta(bloque,info, i.lineBegin+1);			
 			if (bloque.getTS().getLocally(i.text) == null) {
 				bloque.getTS().add(i.text ,info);
-			//System.out.println("DECL bloque: "+bloque.getId());
             }
 			RESULT = null;
         :}				
@@ -199,7 +191,11 @@ Decl	::= tipo:t ID:i
 
 /** Declaracion con Asignacion*/
 iDeclA	::= tipo:t ID:i ASIGNACION:a expr:e
-		{:  Decl inst = new Decl(t, i.text );	
+		{:  Decl inst = new Decl(t, i.text );
+			if (t.getClass().toString().equals("class TArreglo")) {
+				((TArreglo)t).setSize(((Arreglo)e).getTam());
+				((TArreglo)t).setTipo(((TArreglo)(((Arreglo)e).getTipo(bloque))).getTipo());
+			}
 			Informacion info = new Informacion(i.text,t,e,0);
 			noError = noError && inst.esCorrecta(bloque, info, a.lineBegin+1);
 			if (bloque.getTS().get(i.text) == null){
@@ -213,9 +209,20 @@ iDeclA	::= tipo:t ID:i ASIGNACION:a expr:e
         ;
 /** Instruccion de Asignacion */
 iAsig	::= LVal:d ASIGNACION:a expr:e
-        {: 	InstAsig i = new InstAsig(d , e); 
-			Informacion info = new Informacion(d.obtenerId(),TipoF.INT,e,0);
-			noError = noError && i.esCorrecta(bloque, info, a.lineBegin+1);
+        {: 	InstAsig i = new InstAsig(d , e);
+			Informacion info = bloque.getTS().get(d.obtenerId());
+			boolean aux = i.esCorrecta(bloque, info, a.lineBegin+1);
+			if (aux) {
+				//System.out.println("Si es correcta para "+d.obtenerId());				
+				Tipo t = info.getTipo();
+				if (t.getClass().toString().equals("class TArreglo")) {
+					((TArreglo)t).setSize(((Arreglo)e).getTam());
+					((TArreglo)t).setTipo(((TArreglo)(((Arreglo)e).getTipo(bloque))).getTipo());
+					info.setTipo(t);
+				}				
+			}
+			noError = noError && aux;
+			
 			RESULT = i; 
 			
 			//chequear que el LValue exista
@@ -418,18 +425,25 @@ tipo    ::= tipoB:t
 			{: RESULT = new TArreglo(t,-1); :}
         |   REGISTRO LC:ts FINREG
 			{: RESULT = new TRegistro(ts); :}
+		|	REGISTRO LC:ts COMA CASO tipo:t ID:i ES lDiscr:hm FINREG //Lvar ts comun
+			{: 
+				Informacion info = new Informacion(i.text, t, null, 0);
+				ts.add(i.text,info);
+				RESULT = new TVariante(ts,i.text, (HashMap<Object,TablaSim>)hm); 
+			:}
 		|	ID:i
 			{: //chequear en TS y obtener arbol de tipo
 			
 			:}
         ;
 
-/* Tipos Basicos */
+/** Tipos Basicos */
 tipoB   ::= DECLENTERO:t    {: RESULT = TipoF.INT; :}
         |   DECLREAL:t      {: RESULT = TipoF.FLOAT;  :}
         |   DECLBOOL:t      {: RESULT = TipoF.BOOL; :} 
         ;
 
+/** Campos de un Registro*/
 LC		::=	tipo:t ID:i				
 		{: 	TablaSim ts = new TablaSim();
 			Informacion info = new Informacion(i.text, t, null,0);	
@@ -443,30 +457,21 @@ LC		::=	tipo:t ID:i
 		:}
         ;
 
-/* Variante 
-tipoVan ::= REGISTRO LVar:ts COMA CASO tipo:t ID:i ES lDiscr:hm FINREG //Lvar ts comun
+/** Definicion de casos del discriminante */
+lDiscr	::= lDiscr:hm fact:f APARENT LC:ts CPARENT
 			{: 
-				Informacion info = new Informacion(i.text, t, null, 0);
-				ts.add(i.text,info);
-				RESULT = new TVariante(ts,i.text, (HashMap<Object,TablaSim>)hm); 
+				if(!hm.containsKey(f)){
+					hm.put(f,ts);
+				}
+				RESULT = hm;
 			:}
-        ;*/
-
-/** Definicion de un caso del discriminante *//*
-lDiscr	::= lDiscr:hm fact:f APARENT LVar:ts CPARENT    //LVar tabla de sim caso
-                {: 
-                    if(!hm.containsKey(f)){
-                        hm.put(f,ts);
-                    }
-                    RESULT = hm;
-                :}
-        |   fact:f APARENT LVar:ts CPARENT  //LVar tabla de simbolos caso
-                {:
-                    HashMap<Object,TablaSim> hm = new HashMap<Object,TablaSim>();
-                    hm.put(f,ts);
-                    RESULT = hm;
-                :}
-        ;*/
+        |   fact:f APARENT LC:ts CPARENT
+			{:
+				HashMap<Object,TablaSim> hm = new HashMap<Object,TablaSim>();
+				hm.put(f,ts);
+				RESULT = hm;
+			:}
+        ;
 
 /** Contenido de un arreglo */	
 arreglo	::= ACORCH Lelem:l CCORCH		//chequear q sean del mismo tipo los elem

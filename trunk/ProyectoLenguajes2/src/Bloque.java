@@ -384,13 +384,11 @@ class InfoSub {
 		} else {
 			for(int i=0;i<this.params.size();i++) {
 				if (!((this.params.get(i).getTipo()).comparar((l.get(i)).getTipo(b)))) {	
-					Class c1 = this.params.get(i).getTipo().getClass();
-					Class c2 = (l.get(i)).getTipo(b).getClass();					
 					System.out.println("ERROR (linea "+linea+
 					") El pasaje de parametros al subprograma '"+this.id+
-					"' no es correcto para el parametro en la posicion "+(i+1)+".");
+					"' no es correcto para el parametro en la posicion "+(i+1)+".");					
 					return false;						
-				}			
+				}
 			}
 		}
 		return true;	
