@@ -156,12 +156,13 @@ public class Bloque{
         while(it.hasNext()){
             Inst i;
             i = it.next();    //una instruccion
+            //i.setRegistro(0);
             aux0 = aux1;
             aux1 = Misc.newLabel();
             if(it.hasNext()){
-                codigo += i.toCode(aux0, aux1);
+                codigo += i.toCode(aux0, aux1,1);
             }else{
-                codigo += i.toCode(aux0, next);
+                codigo += i.toCode(aux0, next,1);
             }
             /*
             if(it.hasNext()){
@@ -180,6 +181,15 @@ public class Bloque{
         }
         
         return codigo;
+    }
+    
+    public void setShift(int acum){
+        int next = this.tabla.setShift(acum);
+        Iterator<Inst> it = this.inst.iterator();
+        while(it.hasNext()){
+            Inst i = it.next();
+            i.setShift(next);
+        }
     }
 }
 class TablaSim{
@@ -268,10 +278,28 @@ class TablaSim{
     public int getSize(){
         return this.size;
     }
-	public HashMap<String,Informacion> getTabla() {
-		return tabla;
-	}
+    public HashMap<String,Informacion> getTabla() {
+            return tabla;
+    }
+    public int setShift(int acum){
+        Set k = this.tabla.keySet();
+        Iterator it = k.iterator();
+        int next = acum;
+        final int tam_entero = 4;
+        while(it.hasNext()){
+            Object aux = it.next();
+            Informacion info = this.tabla.get(aux);
+            int delta = info.tipo.getSize();
+            if(delta < tam_entero){
+                next = (next+tam_entero-1)/tam_entero;
+            }
+            info.setShift(next);
+            next+= delta;
+        }
+        return (next+tam_entero-1)/tam_entero;
+    }
 }
+
 
 class Informacion {
 	//Nombre del identificador
@@ -282,6 +310,7 @@ class Informacion {
     Object valor;
 	//Estatus de declaracion: 0 normal, 1 Doble Declaracion, 2 No Declarada
     int status;
+    private int shift;
     
     public Informacion(String n, Tipo t, Object v, int i){
         this.nombre = n;
@@ -325,8 +354,14 @@ class Informacion {
     public String toString(){
         return nombre + " : " + tipo + " : " + valor;
     }
+    public void setShift(int shift) {
+        this.shift = shift;
+    }
+ 
+    public int getShift() {
+        return shift;
+    }
 }
-
 enum Metodo { E, ES, S }
 
 class InfoSub {
