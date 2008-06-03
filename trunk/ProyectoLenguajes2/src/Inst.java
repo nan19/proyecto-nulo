@@ -27,8 +27,18 @@ public abstract class Inst {
 	*/
     public abstract String imprimir(int i);    
     public abstract boolean esCorrecta(Bloque c, Informacion info, int linea);
-    public abstract String toCode(String start, String next);
-    
+    public abstract String toCode(String start, String next, int registro);
+    public abstract void setShift(int acum);
+    /*private int registro;
+
+    public int getRegistro() {
+        return registro;
+    }
+
+    public void setRegistro(int registro) {
+        this.registro = registro;
+    }
+     */
 }
 
 /**
@@ -70,15 +80,16 @@ class Decl extends Inst {
     }
 
     @Override
-    public String toCode(String start, String next) {
+    public String toCode(String start, String next, int registro) {
         //throw new UnsupportedOperationException("Not supported yet.");
-        return start+":\n#Declaracion no ha sido implementada todavia\n";
+        return "";//start+":\n#Declaracion no ha sido implementada todavia\n";
     }
 
     
-    
-    
-    
+    @Override
+    public void setShift(int acum) {
+        return;
+    }
 }
 
 /**
@@ -152,20 +163,27 @@ class InstAsig extends Inst {
     }
 
     @Override
-    public String toCode(String start, String next) {
-        //this.E.setYes(Misc.newLabel());
-        //this.E.setNo(Misc.newLabel());
+    public String toCode(String start, String next, int registro) {
+        
+        int sh = this.Variable.getValue().getShift();
         String auxy = Misc.newLabel();
         String auxn = Misc.newLabel();
-        String reg = ""; //
-        String code = start+": "+this.E.toCode(auxy,auxn);
+        String reg = Misc.getRegister(registro);
+        String code = "#Comienzo Asignacion("+start+","+next+")\n";
+        code += start+": "+this.E.toCode(auxy,auxn,registro);
         code += auxy+": "+reg+" := 1\n";
-        code += "[r2+"+/*this.Variable.getShift+*/ "] := "+reg+"\n";
+        code += "[r0+"+sh+ "] := "+reg+"\n";
         code += "goto "+next+"\n";
         code += auxn+": "+reg+" := 0\n";
-        code += "[r2+"+/*this.Variable.getShift+*/ "] := "+reg+"\n";
+        code += "[r0+"+sh+"] := "+reg+"\n";
+        code += "#fin asignacion("+start+","+next+")\n";
         return code;
     }
+    @Override
+    public void setShift(int acum) {
+        return;
+    }
+    
     
 }
 /**
@@ -206,14 +224,18 @@ class InstIf extends Inst {
     }
 
     @Override
-    public String toCode(String start, String next) {
+    public String toCode(String start, String next, int registro) {
         //this.Condicion.setYes(Misc.newLabel());
         //this.Condicion.setNo(this.getNext());
         //this.inst.setNext(this.getNext());
         String aux = Misc.newLabel();
-        return start+": "+this.Condicion.toCode(aux,next)+aux+": "+this.inst.toCode(next);
+        return start+": "+this.Condicion.toCode(aux,next,registro)+aux+": "+this.inst.toCode(next);
     }
     
+    @Override
+    public void setShift(int acum) {
+        this.inst.setShift(acum);
+    }
 }
 
 /**
@@ -253,20 +275,24 @@ class InstIfElse extends InstIf {
     }
 
     @Override
-    public String toCode(String start, String next) {
+    public String toCode(String start, String next, int registro) {
         //this.Condicion.setYes(Misc.newLabel());
         //this.Condicion.setNo(Misc.newLabel());
         //this.inst.setNext(this.getNext());
         String auxy = Misc.newLabel();
         String auxn = Misc.newLabel();
-        String code = start+": "+this.Condicion.toCode(auxy,auxn);
+        String code = start+": "+this.Condicion.toCode(auxy,auxn,registro);
         code += auxy+": "+this.inst.toCode(next);
         code += "goto "+next+"\n";
         code += auxn+": "+this.instElse.toCode(next);
         return code;
     }
     
-    
+    @Override 
+    public void setShift(int acum) {
+        this.inst.setShift(acum);
+        this.instElse.setShift(acum);
+    }
 }
 
 /**
@@ -307,17 +333,20 @@ class InstDo extends Inst {
     }
 
     @Override
-    public String toCode(String start, String next) {
+    public String toCode(String start, String next, int registro) {
         //this.Condicion.setYes(Misc.newLabel());
         //this.Condicion.setNo(this.getNext());
         String aux = Misc.newLabel();
-        String code = start+": "+this.Condicion.toCode(aux,next);
+        String code = start+": "+this.Condicion.toCode(aux,next,registro);
         code += aux+": "+this.inst.toCode(start);
         code += "goto "+start+"\n";
         return code;
     }
     
-    
+    @Override 
+    public void setShift(int acum) {
+        this.inst.setShift(acum);
+    }
 }
 /**
  * Clase que representa una instruccion de llamada a un procedimiento
@@ -371,10 +400,15 @@ class InstLlamada extends Inst {
 	}
 
     @Override
-    public String toCode(String start, String next) {
+    public String toCode(String start, String next, int registro) {
         //throw new UnsupportedOperationException("Not supported yet.");
         return start+":\nLlamadas a procedimientos aun no implementadas\n";
     }
     
+    @Override
+    public void setShift(int acum) {
+        //throw new UnsupportedOperationException("Not supported yet.");
+        return;
+    }
     
 }

@@ -31,6 +31,11 @@ public class Misc {
     private static int etiquetador = -1;
     public static String newLabel(){
         etiquetador++;
-        return "lab"+etiquetador;
+        return "_lab"+etiquetador;
     }
+    
+    public static String getRegister(int i){
+        return "r"+i;
+    }
+    public final static int NReg = 32;
 }

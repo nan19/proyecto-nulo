@@ -139,6 +139,8 @@ precedence left PUNTO;
 inicio	::= LSubProg COMIENZO bloq:b FIN
         {: 	//if (noError)
 				//System.out.println("INICIO bloque: "+bloque.getId());
+                                bloque.imprimir(0);
+                                System.out.println("--------------");
 				b.imprimirB(0);
 			
 		:}
@@ -201,7 +203,9 @@ iDeclA	::= tipo:t ID:i ASIGNACION:a expr:e
 			if (bloque.getTS().get(i.text) == null){
                             bloque.getTS().add(i.text,info);
                         }
-			InstAsig insta = new InstAsig(new Identificador(i.text), e); 					
+                        Identificador id = new Identificador(i.text);
+                        id.setValue(info);
+			InstAsig insta = new InstAsig(id, e); 					
 			noError = noError && insta.esCorrecta(bloque, info, a.lineBegin+1);				
 			RESULT = insta;     
 			//chequear que el LValue exista
@@ -211,6 +215,7 @@ iDeclA	::= tipo:t ID:i ASIGNACION:a expr:e
 iAsig	::= LVal:d ASIGNACION:a expr:e
         {: 	InstAsig i = new InstAsig(d , e);
 			Informacion info = bloque.getTS().get(d.obtenerId());
+                        d.setValue(info);
 			boolean aux = i.esCorrecta(bloque, info, a.lineBegin+1);
 			if (aux) {
 				//System.out.println("Si es correcta para "+d.obtenerId());				
@@ -380,6 +385,7 @@ fact	::= APARENT expr:e CPARENT
         |   LVal:i
 		{:  Factor e = new Factor (TipoF.LVAL, i); 	//cambiar
 			noError = noError && e.esCorrecta(bloque, 0); 	//pasar numero de linea
+                        i.setValue(bloque.getInfo(i.obtenerId()));
 			RESULT = e;
 		:}
         |   CIERTO:c 

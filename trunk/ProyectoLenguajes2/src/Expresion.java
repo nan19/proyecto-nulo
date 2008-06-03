@@ -169,8 +169,18 @@ public abstract class Expresion {
         System.out.println(error);
     }  
     
-    public abstract String toCode(String yes, String no);
-    
+    public abstract String toCode(String yes, String no, int registro);
+    /*
+    private int registro;
+
+    public int getRegistro() {
+        return registro;
+    }
+
+    public void setRegistro(int registro) {
+        this.registro = registro;
+    }
+    */
 }
 /**
  * Clase que representa expresiones cuyos operadores son binarios
@@ -304,15 +314,43 @@ class ExprBin extends Expresion {
     }
 
     @Override
-    public String toCode(String yes, String no) {
+    public String toCode(String yes, String no, int registro) {
         String aux;
         switch(Op){
             case AND:
                 aux = Misc.newLabel();
-                return ExprIzq.toCode(aux,no)+"\n"+aux+": "+ExprDer.toCode(yes,no);
+                return ExprIzq.toCode(aux,no,registro)+"\n"+aux+": "+ExprDer.toCode(yes,no,registro);
             case OR:
                 aux = Misc.newLabel();
-                return ExprIzq.toCode(yes,aux)+"\n"+aux+": "+ExprDer.toCode(yes,no);
+                return ExprIzq.toCode(yes,aux,registro)+"\n"+aux+": "+ExprDer.toCode(yes,no,registro);
+            case DESIGUAL:
+            case IGUAL:
+            case MAYOR:
+            case MAYORIGUAL:
+            case MENOR:
+            case MENORIGUAL:
+                /***********************/
+            case SUMA:
+            case RESTA:
+            case MULT:
+            case DIVE:
+            case MOD:
+            case DIVR:
+                String salv="";
+                String rest= "";
+                String result="";
+                aux = Misc.newLabel();
+                int registro2 = registro+1;
+                if(!(registro2<Misc.NReg)){
+                    registro2 = registro2 % Misc.NReg;
+                    salv+= "*sp := "+Misc.getRegister(registro2)+"\n"+"sp := sp-4\n";
+                    rest+= "sp := sp+4\n"+Misc.getRegister(registro2)+" := *sp";
+                }
+                result += this.ExprIzq.toCode(aux, aux,registro)+salv;
+                result += this.ExprDer.toCode(aux, aux,registro2);
+                result += Misc.getRegister(registro)+" := "+Misc.getRegister(registro);
+                result += " "+Op.toString()+" "+Misc.getRegister(registro2)+"\n"+rest;
+                return result;
         }
         return "\n#Error en toCode ExprBin u operacion no implementada\n";
     }
@@ -383,10 +421,17 @@ class ExprUna extends Expresion {
     }
 
     @Override
-    public String toCode(String yes, String no) {
+    public String toCode(String yes, String no, int registro) {
         switch(this.Op){
             case NOT:
-                return this.E.toCode(no, yes);
+                return this.E.toCode(no, yes,registro);
+            case MENOS:
+                return this.E.toCode(yes, no,registro); //Hacer algo!
+            case REDONDEO:
+            case PISO:
+            case TECHO:
+                
+                return "#Operaciones con reales no implementadas";
         }
         return "\n#Error toCode ExprUna u Operacion no implementada aun\n";
     }
@@ -451,7 +496,7 @@ class Factor extends Expresion {
         }
 
     @Override
-    public String toCode(String yes, String no) {
+    public String toCode(String yes, String no,int registro) {
         switch(this.tipo){
             case BOOL:
                 if(((Booleano)this.valor).getValue()){
@@ -459,6 +504,13 @@ class Factor extends Expresion {
                 }else{
                     return "goto "+no+"\n";
                 }
+            case LVAL:
+                int sh = ((LValue)this.valor).getShift();
+                return Misc.getRegister(registro)+" := [r0 + "+sh+" ]\n";
+            case INT:
+                int v = ((Integer)this.valor).intValue();
+                return Misc.getRegister(registro)+" := "+v+"\n";
+                
         }
         return "\n#Error en Factor toCode o Caso no previsto\n";
     }
@@ -466,8 +518,24 @@ class Factor extends Expresion {
         
 }
 abstract class LValue {
-	public abstract String toString();
-	public abstract String obtenerId();
+    public abstract String toString();
+    public abstract String obtenerId();
+    
+    public void setValue(Informacion i){
+        System.out.println(i);
+        this.value = i;
+    }
+
+    public Informacion getValue() {
+        return value;
+    }
+        
+    private Informacion value;
+    
+    public int getShift(){
+        return this.getValue().getShift();
+    }
+    public abstract String toCode(int registro);
 }
 class ElemArreglo extends LValue {
 	private LValue arreglo;
@@ -483,7 +551,14 @@ class ElemArreglo extends LValue {
 	public String obtenerId() {
 		return (this.arreglo).obtenerId();
 	}
+
+    @Override
+    public String toCode(int registro) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+        
 }
+
 class CampoRegistro extends LValue {
 	private LValue registro;
 	private String campo;
@@ -499,6 +574,12 @@ class CampoRegistro extends LValue {
 	public String obtenerId() {
 		return (this.registro).obtenerId();
 	}
+
+    @Override
+    public String toCode(int registro) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+        
 }
 class Identificador extends LValue {
 	private String id;	
@@ -511,8 +592,13 @@ class Identificador extends LValue {
 	public String obtenerId() {
 		return this.id;
 	}	
-}
 
+    @Override
+    public String toCode(int registro) {
+        return Misc.getRegister(registro)+" := [r0 + "+this.getShift()+" ]";
+    }
+        
+}
 class Arreglo extends Expresion {
       
     //Tipo del arreglo
@@ -559,7 +645,7 @@ class Arreglo extends Expresion {
     }
 
     @Override
-    public String toCode(String yes, String no) {
+    public String toCode(String yes, String no, int registro) {
         //throw new UnsupportedOperationException("Not supported yet.");
         return "\n#Codigo de Arreglo:Expresion\n";
     }
