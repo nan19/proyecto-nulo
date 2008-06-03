@@ -4,7 +4,6 @@ jlex *.lex
 echo "-- Archivos Lexicos procesados --"
 cup -expect 3 Leng2.cup
 echo "-- Leng2.cup procesado --"
-#cup -parser preparser -symbols presymbol -expect 2 -dump PreLeng2.cup
-cup -parser preparser -symbols presymbol -expect 2 PreLeng2.cup
+cup -parser preparser -symbols presymbol -expect 2 -dump PreLeng2.cup
 echo "-- PreLeng2.cup procesado --"
 #javac *.java

@@ -1,5 +1,5 @@
-comienzo
 
-tipo peso = real fint
-	
+comienzo
+registro entero a finr r;
+
 fin
