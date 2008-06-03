@@ -38,4 +38,21 @@ public class Misc {
         return "r"+i;
     }
     public final static int NReg = 32;
+    public static String codigoExpBin(ExprBin e, int registro, String op){
+        String salv="";
+        String rest= "";
+        String result="";
+        String aux = Misc.newLabel();
+        int registro2 = registro+1;
+        if(!(registro2<Misc.NReg)){
+            registro2 = registro2 % Misc.NReg;
+            salv+= "mv sp "+Misc.getRegister(registro2)+"\n"+"add sp sp -4\n";
+            rest+= "add sp sp 4\n"+"mv "+Misc.getRegister(registro2)+" sp";
+        }
+        result += e.getExprIzq().toCode(aux, aux,registro)+salv;
+        result += e.getExprDer().toCode(aux, aux,registro2);
+        result += op +" " + Misc.getRegister(registro)+" "+Misc.getRegister(registro);
+        result += " "+Misc.getRegister(registro2)+"\n"+rest;
+        return result;
+    }
 }

@@ -171,11 +171,11 @@ class InstAsig extends Inst {
         String reg = Misc.getRegister(registro);
         String code = "#Comienzo Asignacion("+start+","+next+")\n";
         code += start+": "+this.E.toCode(auxy,auxn,registro);
-        code += auxy+": "+reg+" := 1\n";
-        code += "[r0+"+sh+ "] := "+reg+"\n";
+        code += auxy+": mv "+reg+" 1\n";
+        code += "mv (r0+"+sh+ ") "+reg+"\n";
         code += "goto "+next+"\n";
-        code += auxn+": "+reg+" := 0\n";
-        code += "[r0+"+sh+"] := "+reg+"\n";
+        code += auxn+": mv "+reg+" 0\n";
+        code += "mv (r0+"+sh+") "+reg+"\n";
         code += "#fin asignacion("+start+","+next+")\n";
         return code;
     }

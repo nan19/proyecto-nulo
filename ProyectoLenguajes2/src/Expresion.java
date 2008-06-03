@@ -182,6 +182,7 @@ public abstract class Expresion {
     }
     */
 }
+
 /**
  * Clase que representa expresiones cuyos operadores son binarios
  */
@@ -218,6 +219,15 @@ class ExprBin extends Expresion {
 		s += "-" + ExprDer.imprimir(i+1);
 		return s;
     }
+
+    public Expresion getExprDer() {
+        return ExprDer;
+    }
+
+    public Expresion getExprIzq() {
+        return ExprIzq;
+    }
+        
     public Tipo getTipo(Bloque c) {
         //return new TBasico(TipoF.ERROR);
         Tipo b = new TBasico(TipoF.BOOL);
@@ -323,19 +333,20 @@ class ExprBin extends Expresion {
             case OR:
                 aux = Misc.newLabel();
                 return ExprIzq.toCode(yes,aux,registro)+"\n"+aux+": "+ExprDer.toCode(yes,no,registro);
-            case DESIGUAL:
-            case IGUAL:
-            case MAYOR:
-            case MAYORIGUAL:
-            case MENOR:
-            case MENORIGUAL:
+            case DESIGUAL: return Misc.codigoExpBin(this, registro, "neq");
+            case IGUAL: return Misc.codigoExpBin(this, registro, "eq");
+            case MAYOR: return Misc.codigoExpBin(this, registro, "gt");
+            case MAYORIGUAL: return Misc.codigoExpBin(this, registro, "ge");
+            case MENOR: return Misc.codigoExpBin(this, registro, "lt");
+            case MENORIGUAL:return Misc.codigoExpBin(this, registro, "le");
                 /***********************/
-            case SUMA:
-            case RESTA:
-            case MULT:
-            case DIVE:
-            case MOD:
-            case DIVR:
+            case SUMA: return Misc.codigoExpBin(this, registro, "add");
+            case RESTA:return Misc.codigoExpBin(this, registro, "subs");
+            case MULT:return Misc.codigoExpBin(this, registro, "mult");
+            case DIVE:return Misc.codigoExpBin(this, registro, "dive");
+            case MOD: return Misc.codigoExpBin(this, registro, "mod");
+            case DIVR:return Misc.codigoExpBin(this, registro, "div");
+                /*
                 String salv="";
                 String rest= "";
                 String result="";
@@ -343,21 +354,21 @@ class ExprBin extends Expresion {
                 int registro2 = registro+1;
                 if(!(registro2<Misc.NReg)){
                     registro2 = registro2 % Misc.NReg;
-                    salv+= "*sp := "+Misc.getRegister(registro2)+"\n"+"sp := sp-4\n";
-                    rest+= "sp := sp+4\n"+Misc.getRegister(registro2)+" := *sp";
+                    salv+= "mv sp "+Misc.getRegister(registro2)+"\n"+"add sp sp -4\n";
+                    rest+= "add sp sp 4\n"+"mv "+Misc.getRegister(registro2)+" sp";
                 }
                 result += this.ExprIzq.toCode(aux, aux,registro)+salv;
                 result += this.ExprDer.toCode(aux, aux,registro2);
                 result += Misc.getRegister(registro)+" := "+Misc.getRegister(registro);
                 result += " "+Op.toString()+" "+Misc.getRegister(registro2)+"\n"+rest;
                 return result;
+                 */ 
         }
         return "\n#Error en toCode ExprBin u operacion no implementada\n";
     }
     
     
 }
-
 /**
  * Clase que representa Expresiones cuyo operador es unario
  */
@@ -431,7 +442,7 @@ class ExprUna extends Expresion {
             case PISO:
             case TECHO:
                 
-                return "#Operaciones con reales no implementadas";
+                return "#Operaciones con reales no implementadas\n";
         }
         return "\n#Error toCode ExprUna u Operacion no implementada aun\n";
     }
